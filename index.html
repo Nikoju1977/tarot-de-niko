@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#07060a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>L'Oracle — Tarot Jodorowsky · Mistral AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <style>
+        :root{--gold:#c9a84c;--gold-hi:#e8c870;--gold-lo:#6b5520;--gold-glow:rgba(201,168,76,0.18);--ink:#07060a;--ink2:#100e0c;--border:#2c2618;--text:#d6cdc2;--dim:#8a7a65}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        html{height:100%}
+        body{background:var(--ink);color:var(--text);font-family:'Cormorant Garamond',serif;min-height:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+        body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.45;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E")}
+        #particles-js{position:fixed;inset:0;z-index:0;pointer-events:none}
+        .page{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:24px 14px 80px;display:flex;flex-direction:column;align-items:center}
+        header{text-align:center;margin-bottom:30px;width:100%}
+        .header-orn{font-size:.8em;color:var(--gold-lo);letter-spacing:1.2em;margin-bottom:10px;display:block}
+        h1{font-family:'Cinzel Decorative',serif;font-size:clamp(2.2em,6vw,3.6em);color:var(--gold);margin-bottom:8px;text-shadow:0 0 50px rgba(201,168,76,.25),0 2px 0 rgba(0,0,0,.8)}
+        .tagline{font-style:italic;color:var(--dim);font-size:.85em;letter-spacing:.12em}
+        
+        /* Bannière CORS */
+        #corsBanner{display:none;background:rgba(180,80,40,.15);border:1px solid #c8661a;border-left:3px solid #c8661a;border-radius:4px;padding:14px 16px;margin-bottom:16px;width:100%;max-width:430px}
+        #corsBanner p{font-size:.78em;line-height:1.6;color:#e8b090;margin-bottom:8px}
+        #corsBanner p:last-child{margin-bottom:0}
+        #corsBanner strong{color:#e8c870}
+        #corsBanner a{color:#c9a84c;text-decoration:underline}
+        #corsBanner .cors-title{font-family:'Cinzel Decorative',serif;font-size:.6em;letter-spacing:.15em;text-transform:uppercase;color:#c8661a;margin-bottom:8px;display:block}
+
+        #loginScreen{width:100%;max-width:430px;background:rgba(14,12,10,.92);border:1px solid var(--border);border-top:2px solid var(--gold-lo);padding:28px 26px 24px;border-radius:6px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+        .login-title{font-family:'Cinzel Decorative',serif;font-size:.68em;color:var(--gold-lo);letter-spacing:.22em;text-transform:uppercase;text-align:center;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+        .field{margin-bottom:14px}
+        .field label{display:block;font-size:.62em;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+        .field input,.field select{width:100%;background:rgba(0,0,0,.5);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'Cormorant Garamond',serif;font-size:max(16px,1.1em);padding:11px 12px;outline:none;transition:border-color .3s;-webkit-appearance:none;appearance:none}
+        .field input:focus,.field select:focus{border-color:var(--gold-lo)}
+        .field select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%236b5520'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+        .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .api-note{font-size:.68em;color:var(--dim);font-style:italic;text-align:center;margin-top:6px;line-height:1.45}
+        .btn{padding:12px 28px;background:transparent;border:1px solid var(--border);color:var(--dim);font-family:'Cormorant Garamond',serif;font-size:.88em;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border-radius:3px;transition:border-color .3s,color .3s,box-shadow .3s;-webkit-appearance:none;appearance:none;touch-action:manipulation}
+        .btn:hover{border-color:var(--gold-lo);color:var(--gold)}
+        .btn:active{opacity:.8;transform:scale(.98)}
+        .btn-primary{border-color:var(--gold-lo);color:var(--gold)}
+        .btn-primary:hover{border-color:var(--gold);box-shadow:0 0 14px var(--gold-glow)}
+        .login-btn{width:100%;padding:15px;margin-top:20px}
+        #appScreen{display:none;width:100%;max-width:860px}
+        .session-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--border);gap:8px}
+        .session-name{font-family:'Cinzel Decorative',serif;font-size:.78em;color:var(--gold);letter-spacing:.1em}
+        .session-spread{font-size:.72em;color:var(--dim);font-style:italic;text-align:right}
+        .board{display:grid;gap:9px;justify-items:center;align-items:start;margin-bottom:26px;perspective:1400px;width:100%}
+        .board.spread-3{grid-template-columns:repeat(3,1fr)}
+        .board.spread-4{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,auto)}
+        .board.spread-4 .slot-0{grid-column:1;grid-row:1}.board.spread-4 .slot-1{grid-column:3;grid-row:1}.board.spread-4 .slot-2{grid-column:2;grid-row:2}.board.spread-4 .slot-3{grid-column:2;grid-row:3}
+        .board.spread-5{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,auto)}
+        .board.spread-5 .slot-0{grid-column:1;grid-row:2}.board.spread-5 .slot-1{grid-column:3;grid-row:2}.board.spread-5 .slot-2{grid-column:2;grid-row:1}.board.spread-5 .slot-3{grid-column:2;grid-row:3}.board.spread-5 .slot-4{grid-column:2;grid-row:2}
+        .board.spread-6{grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,auto)}
+        .board.spread-6 .slot-0{grid-column:2;grid-row:1}.board.spread-6 .slot-1{grid-column:1;grid-row:2}.board.spread-6 .slot-2{grid-column:2;grid-row:2}.board.spread-6 .slot-3{grid-column:3;grid-row:2}.board.spread-6 .slot-4{grid-column:4;grid-row:2}.board.spread-6 .slot-5{grid-column:2;grid-row:3}
+        .card-slot{width:100%;display:flex;justify-content:center;opacity:0;animation:dealIn .4s ease forwards}
+        @keyframes dealIn{from{opacity:0;transform:translateY(-18px) scale(.88)}to{opacity:1;transform:translateY(0) scale(1)}}
+        .card-wrap{width:100%;max-width:118px;aspect-ratio:2/3.35;position:relative;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;user-select:none;-webkit-user-select:none;cursor:pointer;transition:transform .25s ease,filter .25s ease;touch-action:manipulation}
+        @supports not (aspect-ratio:2/3.35){.card-wrap::before{content:'';display:block;padding-top:167.5%}}
+        .card-wrap:hover:not(.flipped){transform:translateY(-5px);filter:brightness(1.08)}
+        .card-inner{position:absolute;top:0;left:0;right:0;bottom:0;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;transition:-webkit-transform 1.4s cubic-bezier(.25,.1,.25,1);transition:transform 1.4s cubic-bezier(.25,.1,.25,1);transition:transform 1.4s cubic-bezier(.25,.1,.25,1),-webkit-transform 1.4s cubic-bezier(.25,.1,.25,1)}
+        .card-wrap.flipped .card-inner{-webkit-transform:rotateY(180deg);transform:rotateY(180deg)}
+        .card-face{position:absolute;top:0;left:0;right:0;bottom:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:6px;border:1px solid var(--border);overflow:hidden}
+        .face-back{background:var(--ink2);border-color:var(--gold-lo);display:flex;align-items:center;justify-content:center;background-image:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(201,168,76,.03) 8px,rgba(201,168,76,.03) 9px)}
+        .face-front{-webkit-transform:rotateY(180deg);transform:rotateY(180deg);background:var(--ink2);display:flex;flex-direction:column;padding:3px}
+        .card-lbl{font-size:.48em;font-family:'Cinzel Decorative',serif;text-transform:uppercase;color:var(--gold-lo);text-align:center;padding:2px 0 3px;letter-spacing:1px;flex-shrink:0}
+        .card-img{width:100%;flex:1;object-fit:cover;border-radius:2px;display:block;min-height:0}
+        .img-reversed{-webkit-transform:rotate(180deg);transform:rotate(180deg)}
+        .text-blocked{color:#b56c6c;font-style:italic}
+        .jodo-meta{font-size:.38em;color:var(--dim);text-align:center;padding:3px 2px 2px;margin-top:2px;border-top:1px solid rgba(201,168,76,.15);line-height:1.3;flex-shrink:0;letter-spacing:.05em}
+        .jodo-gaze{color:var(--gold-lo);font-style:italic}
+        .card-name{font-size:clamp(.44em,1.6vw,.66em);font-weight:600;text-align:center;padding:2px 2px 1px;color:var(--text);line-height:1.1;flex-shrink:0}
+        .oracle-panel{background:rgba(10,8,6,.93);border:1px solid var(--border);border-left:3px solid var(--gold-lo);border-radius:4px;padding:22px 22px 26px;margin-bottom:26px;display:none;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);width:100%}
+        .oracle-panel.on{display:block;animation:fadeUp .45s ease}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        .oracle-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+        .oracle-icon{font-size:1.1em}.oracle-title{font-family:'Cinzel Decorative',serif;font-size:.68em;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+        .oracle-badge{margin-left:auto;font-size:.58em;color:var(--dim);font-style:italic;border:1px solid var(--border);border-radius:2px;padding:2px 7px}
+        .oracle-loading{color:var(--dim);font-style:italic;font-size:.9em;display:flex;align-items:center;gap:6px}
+        .dots-anim{display:inline-flex;gap:3px}
+        .dots-anim span{width:4px;height:4px;background:var(--gold-lo);border-radius:50%;animation:dotPulse 1.4s ease-in-out infinite}
+        .dots-anim span:nth-child(2){animation-delay:.2s}.dots-anim span:nth-child(3){animation-delay:.4s}
+        @keyframes dotPulse{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+        .oracle-body{font-size:1.08em;line-height:1.85;color:#c8bfb4;word-break:break-word;min-height:40px}
+        .oracle-body p{margin-bottom:.85em}.oracle-body p:last-child{margin-bottom:0}
+        .oracle-body strong{color:var(--gold);font-weight:600}.oracle-body em{color:#d4c8b8;font-style:italic}
+        .oracle-body h1,.oracle-body h2,.oracle-body h3{font-family:'Cinzel Decorative',serif;font-size:.78em;color:var(--gold-lo);letter-spacing:.16em;text-transform:uppercase;margin:1.2em 0 .5em}
+        .oracle-body hr{border:none;border-top:1px solid var(--border);margin:1em 0}
+        .oracle-body ul{list-style:none;padding:0}.oracle-body ul li{padding-left:1.2em;margin-bottom:.4em}
+        .oracle-body ul li::before{content:'✦';color:var(--gold-lo);margin-right:.5em;font-size:.7em;vertical-align:middle}
+        .oracle-error{font-size:.82em;color:#cc7777;line-height:1.6}
+        #chatMessages{margin-top:20px;border-top:1px solid var(--border);padding-top:16px;display:none}
+        .msg-user{color:var(--gold-hi);margin-bottom:6px;font-size:.95em}.msg-user::before{content:'✦ '}
+        .msg-oracle{color:#c8bfb4;word-break:break-word;line-height:1.75;margin-bottom:18px;font-size:.95em;padding-left:14px;border-left:2px solid rgba(201,168,76,.15)}
+        .msg-oracle p{margin-bottom:.7em}.msg-oracle p:last-child{margin-bottom:0}
+        .msg-oracle strong{color:var(--gold);font-weight:600}.msg-oracle em{font-style:italic;color:#d4c8b8}
+        .msg-oracle h1,.msg-oracle h2,.msg-oracle h3{font-family:'Cinzel Decorative',serif;font-size:.72em;color:var(--gold-lo);letter-spacing:.14em;text-transform:uppercase;margin:.9em 0 .4em}
+        .msg-oracle hr{border:none;border-top:1px solid var(--border);margin:.8em 0}
+        .msg-oracle ul{list-style:none;padding:0}.msg-oracle ul li{padding-left:1.1em;margin-bottom:.3em}
+        .msg-oracle ul li::before{content:'✦';color:var(--gold-lo);margin-right:.4em;font-size:.7em;vertical-align:middle}
+        #oracleChatInput{display:none;margin-top:20px;border-top:1px solid var(--border);padding-top:16px}
+        .chat-row{display:flex;gap:8px;align-items:center}
+        #btnMicro{background:var(--ink2);border:1px solid var(--border);color:var(--gold-lo);border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:1.2em;transition:color .3s,border-color .3s;flex-shrink:0;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+        #btnMicro.active{color:var(--gold);border-color:var(--gold)}
+        #chatInput{flex:1;background:rgba(0,0,0,.4);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:3px;font-family:'Cormorant Garamond',serif;font-size:max(16px,1em);outline:none;transition:border-color .3s;min-width:0;-webkit-appearance:none}
+        #chatInput:focus{border-color:var(--gold-lo)}
+        .btn-send{padding:10px 18px;margin:0;flex-shrink:0}
+        #microStatus{font-size:.75em;color:var(--gold);font-style:italic;margin-top:6px;display:none;padding-left:52px}
+        .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;padding-bottom:30px;width:100%}
+        footer{position:relative;z-index:1;width:100%;text-align:center;padding:18px 14px 32px;border-top:1px solid rgba(44,38,24,.6);margin-top:10px}
+        .footer-inner{display:inline-flex;flex-direction:column;align-items:center;gap:4px}
+        .footer-orn{color:var(--gold-lo);font-size:.7em;letter-spacing:.6em;margin-bottom:4px}
+        .footer-credit{font-family:'Cinzel Decorative',serif;font-size:.6em;color:var(--gold-lo);letter-spacing:.18em;text-transform:uppercase}
+        .footer-name{font-family:'Cormorant Garamond',serif;font-size:.78em;color:var(--dim);font-style:italic;letter-spacing:.08em}
+        .footer-tech{font-size:.6em;color:rgba(138,122,101,.5);letter-spacing:.12em;margin-top:2px}
+        @media(max-width:480px){
+            .board{gap:5px}
+            .board.spread-6{grid-template-columns:repeat(3,1fr)}
+            .board.spread-6 .slot-0{grid-column:2;grid-row:1}.board.spread-6 .slot-1{grid-column:1;grid-row:2}.board.spread-6 .slot-2{grid-column:2;grid-row:2}.board.spread-6 .slot-3{grid-column:3;grid-row:2}.board.spread-6 .slot-4{grid-column:1;grid-row:3}.board.spread-6 .slot-5{grid-column:2;grid-row:3}
+            .oracle-panel{padding:16px 14px 20px}.field-row{grid-template-columns:1fr}.actions{gap:8px}.btn{padding:11px 18px;font-size:.82em}.card-wrap{max-width:none}
+        }
+        @media(max-width:360px){
+            .board.spread-6{grid-template-columns:repeat(2,1fr)}
+            .board.spread-6 .slot-0{grid-column:1;grid-row:1}.board.spread-6 .slot-1{grid-column:2;grid-row:1}.board.spread-6 .slot-2{grid-column:1;grid-row:2}.board.spread-6 .slot-3{grid-column:2;grid-row:2}.board.spread-6 .slot-4{grid-column:1;grid-row:3}.board.spread-6 .slot-5{grid-column:2;grid-row:3}
+        }
+        @supports(padding-bottom:env(safe-area-inset-bottom)){.page{padding-bottom:calc(80px + env(safe-area-inset-bottom))}}
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    <div class="page">
+        <header>
+            <span class="header-orn">⊗ ✦ ⊗</span>
+            <h1>L'Oracle</h1>
+            <p class="tagline">Tarot de Marseille · Méthode Jodorowsky · Mistral AI</p>
+        </header>
+
+        <div id="corsBanner">
+            <span class="cors-title">⚠ Fichier local détecté</span>
+            <p>Pour que l'Oracle AI et le microphone fonctionnent, ce fichier doit être ouvert depuis une <strong>URL HTTPS</strong>.</p>
+            <p><strong>Solution :</strong> Héberge ce fichier gratuitement via <a href="https://pages.github.com" target="_blank">GitHub Pages</a>.</p>
+            <p style="font-size:.72em;color:#8a7a65;margin-top:6px">Protocole actuel : <strong id="corsProto" style="color:#e8b090"></strong></p>
+        </div>
+
+        <div id="loginScreen">
+            <div class="login-title">Ouvrir la Consultation</div>
+            <div class="field-row">
+                <div class="field"><label>Prénom *</label><input type="text" id="f-prenom" required autocomplete="off" placeholder="Votre prénom" inputmode="text"></div>
+                <div class="field"><label>Naissance</label><input type="date" id="f-dob"></div>
+            </div>
+            <div class="field"><label>Question / Intention</label><input type="text" id="f-question" autocomplete="off" placeholder="Formule ton intention intérieure..." inputmode="text"></div>
+            <div class="field">
+                <label>Tirage</label>
+                <select id="f-spread">
+                    <option value="3">La Phrase Optique — 3 Cartes · Sujet · Verbe · Complément</option>
+                    <option value="4">La Psychogénéalogie — 4 Cartes · Héritage Familial</option>
+                    <option value="5">La Croix Psychologique — 5 Cartes</option>
+                    <option value="6" selected>L'Hexagramme — 6 Positions · Tirage Complet</option>
+                </select>
+            </div>
+            <div class="field"><label>Clé API Mistral AI</label><input type="password" id="f-apikey" autocomplete="off" placeholder="..."></div>
+            <p class="api-note">Stockée uniquement dans ton navigateur (localStorage). Sans clé, l'oracle IA est désactivé.</p>
+            <button class="btn btn-primary login-btn" id="loginBtn">✦ Ouvrir la Table ✦</button>
+        </div>
+
+        <div id="appScreen">
+            <div class="session-bar">
+                <span class="session-name" id="sessionName">—</span>
+                <span class="session-spread" id="sessionSpread">—</span>
+            </div>
+            <div class="board" id="board"></div>
+            <div class="oracle-panel" id="oraclePanel">
+                <div class="oracle-header">
+                    <span class="oracle-icon">✦</span>
+                    <span class="oracle-title">Voix de l'Oracle</span>
+                    <span class="oracle-badge">mistral-large-latest</span>
+                </div>
+                <div id="oracleLoading" style="display:none" class="oracle-loading">Les arcanes se révèlent dans le silence <span class="dots-anim"><span></span><span></span><span></span></span></div>
+                <div class="oracle-body" id="oracleBody"></div>
+                <div id="chatMessages"></div>
+                <div id="oracleChatInput">
+                    <div class="chat-row">
+                        <button id="btnMicro" title="Parler à l'Oracle">🎙️</button>
+                        <input type="text" id="chatInput" autocomplete="off" placeholder="Parle ou écris ta question..." inputmode="text">
+                        <button class="btn btn-primary btn-send" id="btnSend">✦</button>
+                    </div>
+                    <div id="microStatus">Écoute en cours...</div>
+                </div>
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" id="btnReveal" style="display:none">✦ Révéler le Tirage</button>
+                <button class="btn btn-primary" id="btnOracle" style="display:none">✦ Écouter l'Oracle</button>
+                <button class="btn btn-primary" id="btnNouveau">Nouveau Tirage</button>
+                <button class="btn" id="btnQuitter">← Quitter</button>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div class="footer-inner">
+            <span class="footer-orn">⊗ · ⊗</span>
+            <span class="footer-credit">Créé par</span>
+            <span class="footer-name">Nicolas Julienne</span>
+            <span class="footer-tech">Tarot de Marseille · Méthode Jodorowsky · Mistral AI</span>
+        </div>
+    </footer>
+
+    <script>
+        'use strict';
+        
+        // ===== CONFIG =====
+        const MISTRAL_URL = 'https://api.mistral.ai/v1/chat/completions';
+        const MISTRAL_MODEL = 'mistral-large-latest';
+        window._imgFallback = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='335'%3E%3Crect width='100%25' height='100%25' fill='%231a1510'/%3E%3Ctext x='50%25' y='48%25' fill='%23c9a84c' text-anchor='middle' font-size='28'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E";
+
+        // ===== DONNÉES =====
+        function conver(n){return 'https://commons.wikimedia.org/w/thumb.php?f=Tarot_de_Marseille_Nicolas_Conver_-_'+encodeURIComponent(n)+'.jpg&w=400';}
+        const CBD='https://cbdtarot.com/wp-content/uploads/2013/04/';
+        const MAJEURS=[
+            {id:0,type:'maj',n:'Le Mat',degre:0,regard:'le ciel',url:conver('Le Mat')},
+            {id:1,type:'maj',n:'Le Bateleur',degre:1,regard:'la droite',url:conver('Le Bateleur')},
+            {id:2,type:'maj',n:'La Papesse',degre:2,regard:'la gauche',url:conver('La Papesse')},
+            {id:3,type:'maj',n:"L'Impératrice",degre:3,regard:'la droite',url:conver("L'Impératrice")},
+            {id:4,type:'maj',n:"L'Empereur",degre:4,regard:'la gauche',url:conver("L'Empereur")},
+            {id:5,type:'maj',n:'Le Pape',degre:5,regard:'la droite',url:conver('Le Pape')},
+            {id:6,type:'maj',n:"L'Amoureux",degre:6,regard:'multiples',url:conver("L'Amoureux")},
+            {id:7,type:'maj',n:'Le Chariot',degre:7,regard:'le spectateur',url:conver('Le Chariot')},
+            {id:8,type:'maj',n:'La Justice',degre:8,regard:'le spectateur',url:conver('La Justice')},
+            {id:9,type:'maj',n:"L'Ermite",degre:9,regard:'la gauche',url:conver("L'Ermite")},
+            {id:10,type:'maj',n:'La Roue de Fortune',degre:10,regard:'la gauche',url:conver('La Roue de Fortune')},
+            {id:11,type:'maj',n:'La Force',degre:11,regard:'la droite',url:conver('La Force')},
+            {id:12,type:'maj',n:'Le Pendu',degre:12,regard:'le spectateur',url:conver('Le Pendu')},
+            {id:13,type:'maj',n:"L'Arcane XIII",degre:13,regard:'la droite',url:conver('La Mort')},
+            {id:14,type:'maj',n:'La Tempérance',degre:14,regard:'le spectateur',url:conver('La Tempérance')},
+            {id:15,type:'maj',n:'Le Diable',degre:15,regard:'le spectateur',url:conver('Le Diable')},
+            {id:16,type:'maj',n:'La Maison-Dieu',degre:16,regard:'la terre',url:conver('La Maison-Dieu')},
+            {id:17,type:'maj',n:"L'Étoile",degre:17,regard:'le spectateur',url:conver("L'Étoile")},
+            {id:18,type:'maj',n:'La Lune',degre:18,regard:'le spectateur',url:conver('La Lune')},
+            {id:19,type:'maj',n:'Le Soleil',degre:19,regard:'le spectateur',url:conver('Le Soleil')},
+            {id:20,type:'maj',n:'Le Jugement',degre:20,regard:'le ciel',url:conver('Le Jugement')},
+            {id:21,type:'maj',n:'Le Monde',degre:21,regard:'la gauche',url:conver('Le Monde')}
+        ];
+        const SUITES=[
+            {name:'Épées',color:'#8a90a0',centre:'Intellectuel',pfx:'e'},
+            {name:'Coupes',color:'#2a7cc7',centre:'Émotionnel',pfx:'c'},
+            {name:'Bâtons',color:'#c8661a',centre:'Créatif/Sexuel',pfx:'b'},
+            {name:'Deniers',color:'#c9a84c',centre:'Matériel',pfx:'d'}
+        ];
+        const NUMEROLOGIE={
+            'As':{degre:1,desc:'Totalité en puissance'},'II':{degre:2,desc:'Accumulation · Gestation'},
+            'III':{degre:3,desc:'Explosion créatrice'},'IV':{degre:4,desc:'Stabilité · Fondation'},
+            'V':{degre:5,desc:'Tentation · Pont'},'VI':{degre:6,desc:'Beauté · Plaisir'},
+            'VII':{degre:7,desc:'Action dans le monde'},'VIII':{degre:8,desc:'Perfection · Plénitude'},
+            'IX':{degre:9,desc:'Crise · Transition'},'X':{degre:10,desc:'Fin de cycle'},
+            'Valet':{degre:'Figure',desc:"L'Enfant · Hésitation"},'Cavalier':{degre:'Figure',desc:'Le Messager · Transmutation'},
+            'Dame':{degre:'Figure',desc:'La Mère · Possession'},'Roi':{degre:'Figure',desc:'Le Père · Maîtrise'}
+        };
+        const RANGS=['As','II','III','IV','V','VI','VII','VIII','IX','X','Valet','Cavalier','Dame','Roi'];
+        const RANG_NUM={'As':'01','II':'02','III':'03','IV':'04','V':'05','VI':'06','VII':'07','VIII':'08','IX':'09','X':'10','Valet':'11','Cavalier':'12','Dame':'13','Roi':'14'};
+        
+        let MINEURS=[];
+        let _mid=100;
+        SUITES.forEach(function(s){RANGS.forEach(function(r){MINEURS.push({id:_mid++,type:'min',n:r+' de '+s.name,rang:r,suite:s,degre:NUMEROLOGIE[r].degre,jodo_desc:NUMEROLOGIE[r].desc,url:CBD+s.pfx+RANG_NUM[r]+'.jpg'});});});
+        const FULL_DECK=MAJEURS.concat(MINEURS);
+        const TIRAGES={
+            '3':{label:'La Phrase Optique',pos:["Ce que je suis","L'action en cours","L'évolution"]},
+            '4':{label:'Psychogénéalogie',pos:["L'Héritage du Père","L'Héritage de la Mère","Le Consultant","La Voie de Guérison"]},
+            '5':{label:'La Croix',pos:["Ce qui soutient","Ce qui fait face","L'esprit","La réalité","La Voie Centrale"]},
+            '6':{label:"L'Hexagramme",pos:['Ciel','Passé','Cœur','Proche','Lointain','Terre']}
+        };
+
+        // ===== STATE =====
+        let consultant={}, spreadKey='6', tirage=[], oracleLaunched=false, conversationHistory=[], oracleFullText='';
+
+        // ===== GESTION SÉCURISÉE DU LOCALSTORAGE =====
+        function sauverCle(cle) { try { localStorage.setItem('oracle_apikey', cle); } catch(e) { console.warn("Stockage local désactivé"); } }
+        function recupererCle() { try { return localStorage.getItem('oracle_apikey') || ''; } catch(e) { return ''; } }
+
+        // ===== SPEECH (GÉRÉ POUR IOS SAFARI) =====
+        let speechVoices=[];
+        let audioIOSUnlocked = false; 
+        
+        function initVoices(){if(window.speechSynthesis)speechVoices=window.speechSynthesis.getVoices();}
+        if(window.speechSynthesis)window.speechSynthesis.onvoiceschanged=initVoices;
+        initVoices();
+        
+        function getFrenchVoice(){return speechVoices.find(function(v){return v.lang&&v.lang.toLowerCase().indexOf('fr')===0;})||null;}
+        
+        function debloquerAudioApple(){
+            if(!window.speechSynthesis || audioIOSUnlocked) return;
+            try{
+                const u=new SpeechSynthesisUtterance('');
+                u.volume=0;
+                window.speechSynthesis.speak(u);
+                audioIOSUnlocked = true;
+            }catch(e){}
+        }
+
+        function faireParlerOracle(t){
+            if(!window.speechSynthesis)return;
+            const p=String(t).replace(/#{1,3}\s*/g,'').replace(/\*{1,3}/g,'').replace(/`/g,'').replace(/^[-*_]{3,}$/gm,'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
+            if(!p)return;
+            window.speechSynthesis.cancel();
+            setTimeout(function(){
+                try{
+                    const u=new SpeechSynthesisUtterance(p);
+                    u.lang='fr-FR';u.rate=0.95;u.pitch=0.85;
+                    const v=getFrenchVoice();if(v)u.voice=v;
+                    window.speechSynthesis.speak(u);
+                }catch(e){}
+            },120);
+        }
+
+        // ===== HELPERS =====
+        function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+        function escA(s){return escH(s);}
+        function sanitizeKey(k){return String(k).replace(/[^\x20-\x7E]/g,'').trim();}
+        function parseSSE(txt){
+            let r='';
+            txt.split('\n').forEach(function(l){
+                if(l.indexOf('data: ')!==0)return;
+                const raw=l.slice(6).trim();
+                if(!raw||raw==='[DONE]')return;
+                try{const d=JSON.parse(raw);const c=d.choices&&d.choices[0]&&d.choices[0].delta&&d.choices[0].delta.content;if(c)r+=c;}catch(e){}
+            });
+            return r;
+        }
+        
+        function renderMD(raw){
+            let s=String(raw).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            s=s.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+            const lines=s.split('\n');
+            let out=[],inList=false;
+            for(let i=0;i<lines.length;i++){
+                const l=lines[i];
+                if(/^(\s*[-*_]){3,}\s*$/.test(l)){if(inList){out.push('</ul>');inList=false;}out.push('<hr>');continue;}
+                const hm=l.match(/^(#{1,3})\s+(.*)/);
+                if(hm){if(inList){out.push('</ul>');inList=false;}const tag='h'+Math.min(hm[1].length+1,3);out.push('<'+tag+'>'+inl(hm[2])+'</'+tag+'>');continue;}
+                const lm=l.match(/^\s*[-*]\s+(.*)/);
+                if(lm){if(!inList){out.push('<ul>');inList=true;}out.push('<li>'+inl(lm[1])+'</li>');continue;}
+                if(l.trim()===''){if(inList){out.push('</ul>');inList=false;}out.push('</p><p>');continue;}
+                if(inList){out.push('</ul>');inList=false;}
+                out.push(inl(l));
+            }
+            if(inList)out.push('</ul>');
+            let h='<p>'+out.join('\n')+'</p>';
+            h=h.replace(/<p>\s*<\/p>/g,'').replace(/<p>\s*(<h[123]>)/g,'$1').replace(/(<\/h[123]>)\s*<\/p>/g,'$1').replace(/<p>\s*(<hr>)\s*<\/p>/g,'$1').replace(/<p>\s*(<ul>)/g,'$1').replace(/(<\/ul>)\s*<\/p>/g,'$1');
+            return h;
+        }
+        
+        function inl(s){
+            s=s.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>');
+            s=s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+            s=s.replace(/\*(.+?)\*/g,'<em>$1</em>');
+            s=s.replace(/`([^`]+)`/g,'<code>$1</code>');
+            return s;
+        }
+        
+        function scrollBot(el){
+            try{el.scrollTop=el.scrollHeight;const r=el.getBoundingClientRect();if(r.bottom>window.innerHeight)window.scrollTo({top:window.scrollY+r.bottom-window.innerHeight+20,behavior:'smooth'});}catch(e){}
+        }
+
+        // ===== SESSION =====
+        function ouvrirSession(){
+            const prenom=document.getElementById('f-prenom').value.trim();
+            if(!prenom){alert('Le prénom est requis pour consulter.');return;}
+            debloquerAudioApple();
+            consultant.prenom=prenom;
+            consultant.dob=document.getElementById('f-dob').value;
+            consultant.question=document.getElementById('f-question').value.trim();
+            spreadKey=document.getElementById('f-spread').value;
+            
+            const k=sanitizeKey(document.getElementById('f-apikey').value);
+            if(k) sauverCle(k);
+            consultant.apiKey=k || sanitizeKey(recupererCle());
+            
+            try {
+                document.getElementById('loginScreen').style.display='none';
+                document.getElementById('appScreen').style.display='block';
+                document.getElementById('sessionName').textContent=consultant.prenom;
+                document.getElementById('sessionSpread').textContent=TIRAGES[spreadKey].label;
+                genererTirage();
+            } catch(err) {
+                alert('Erreur: '+err.message);
+            }
+        }
+        
+        function retourLogin(){if(window.speechSynthesis)window.speechSynthesis.cancel();document.getElementById('appScreen').style.display='none';document.getElementById('loginScreen').style.display='block';}
+        function nouveauTirage(){if(window.speechSynthesis)window.speechSynthesis.cancel();genererTirage();}
+
+        // ===== TIRAGE =====
+        function genererTirage(){
+            oracleLaunched=false;conversationHistory=[];oracleFullText='';
+            const b=document.getElementById('board');b.innerHTML='';b.className='board spread-'+spreadKey;
+            document.getElementById('oraclePanel').classList.remove('on');
+            document.getElementById('oracleBody').textContent='';
+            document.getElementById('chatMessages').innerHTML='';
+            document.getElementById('chatMessages').style.display='none';
+            document.getElementById('oracleChatInput').style.display='none';
+            document.getElementById('btnOracle').style.display='none';
+            document.getElementById('btnReveal').style.display='inline-block';
+            
+            const shuffled=FULL_DECK.slice().sort(function(){return Math.random()-.5;});
+            tirage=shuffled.slice(0,TIRAGES[spreadKey].pos.length).map(function(c){const o={};for(let k in c)o[k]=c[k];o.isReversed=Math.random()<.3;return o;});
+            
+            tirage.forEach(function(carte,i){
+                const slot=document.createElement('div');slot.className='card-slot slot-'+i;slot.style.animationDelay=(i*.09)+'s';
+                const wrap=document.createElement('div');wrap.className='card-wrap';
+                wrap.innerHTML='<div class="card-inner"><div class="card-face face-back"></div><div class="card-face face-front">'+buildFront(carte,TIRAGES[spreadKey].pos[i])+'</div></div>';
+                wrap.addEventListener('click',function(){this.classList.add('flipped');verifierToutRetourne();});
+                slot.appendChild(wrap);b.appendChild(slot);
+            });
+        }
+        
+        function buildFront(c,label){
+            const blocked=c.isReversed?' <span class="text-blocked">(Bloquée)</span>':'';
+            const etat=c.isReversed?'<span class="text-blocked">Énergie intériorisée</span>':'';
+            const meta=c.type==='maj'
+                ?'<div class="jodo-meta">Degré '+c.degre+'<br><span class="jodo-gaze">👁️ '+escH(c.regard)+'</span><br>'+etat+'</div>'
+                :'<div class="jodo-meta"><span style="color:'+escA(c.suite.color)+'">'+escH(c.suite.centre)+'</span><br>Degré '+c.degre+'<br>'+etat+'</div>';
+            return '<div class="card-lbl">'+escA(label)+'</div>'+
+                   '<img src="'+escA(c.url)+'" class="card-img'+(c.isReversed?' img-reversed':'')+'" loading="lazy" alt="'+escA(c.n)+'" onerror="this.onerror=null;this.src=window._imgFallback">'+
+                   '<div class="card-name">'+escH(c.n)+blocked+'</div>'+meta;
+        }
+        
+        function revelerTirage(){
+            const wraps=document.querySelectorAll('.card-wrap:not(.flipped)');
+            document.getElementById('btnReveal').style.display='none';
+            wraps.forEach(function(w,i){
+                setTimeout(function(){w.classList.add('flipped');if(i===wraps.length-1)setTimeout(verifierToutRetourne,600);},i*900);
+            });
+        }
+        
+        function verifierToutRetourne(){
+            if(!oracleLaunched&&Array.from(document.querySelectorAll('.card-wrap')).every(function(w){return w.classList.contains('flipped');}))
+                document.getElementById('btnOracle').style.display='inline-block';
+        }
+
+        // ===== MISTRAL — LECTURE INITIALE (Avec FETCH API pour GitHub Pages) =====
+        async function lancerAnalyseMistral(){
+            if(oracleLaunched)return;oracleLaunched=true;
+            debloquerAudioApple();
+            document.getElementById('btnOracle').style.display='none';
+            document.getElementById('oraclePanel').classList.add('on');
+            document.getElementById('oracleLoading').style.display='flex';
+            document.getElementById('oracleBody').textContent='';
+            oracleFullText='';
+            
+            const apiKey=sanitizeKey(consultant.apiKey||recupererCle());
+            if(!apiKey){document.getElementById('oracleLoading').style.display='none';document.getElementById('oracleBody').textContent='⚠ Clé API Mistral manquante.';return;}
+            
+            const sp=TIRAGES[spreadKey];
+            const desc=tirage.map(function(c,i){
+                const s=c.isReversed?'[INVERSÉE]':'[ENDROIT]';
+                return c.type==='maj'?sp.pos[i]+' → '+c.n+' '+s+' (Degré:'+c.degre+', Regard:'+c.regard+')'
+                                     :sp.pos[i]+' → '+c.n+' '+s+' (Centre '+c.suite.centre+', Degré:'+c.degre+')';
+            }).join('\n');
+            const sys="Tu es un maître tarologue appliquant la méthode Jodorowsky ('La Voie du Tarot'). Tu ne fais jamais de divination. Le Tarot est un miroir psychologique.\nRÈGLES : 1. OPTIQUE : direction des regards entre cartes. 2. NUMÉROLOGIE. 3. RÉSONANCES. 4. PSYCHOGÉNÉALOGIE. 5. CENTRES ÉNERGÉTIQUES. 6. CARTES INVERSÉES = énergie bloquée.\nTon ton est poétique, percutant, bienveillant. Conclus par un acte psychomagique concret.";
+            const dob=consultant.dob?', né(e) le '+consultant.dob:'';
+            const intent=consultant.question||"Aucune intention explicite.";
+            const usr='Tirage ('+sp.label+') :\n'+desc+'\n\nConsultant : '+consultant.prenom+dob+'.\nIntention : "'+intent+'".\nInterprète en tutoyant.';
+            
+            conversationHistory=[{role:'system',content:sys},{role:'user',content:usr}];
+            try{
+                const res=await fetch(MISTRAL_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:MISTRAL_MODEL,stream:true,temperature:0.7,max_tokens:600,messages:conversationHistory})});
+                if(!res.ok)throw new Error('HTTP '+res.status+' — vérifie ta clé API.');
+                
+                document.getElementById('oracleLoading').style.display='none';
+                const el=document.getElementById('oracleBody');
+                
+                if(!res.body){
+                    oracleFullText=parseSSE(await res.text());
+                }else{
+                    const reader=res.body.getReader(),dec=new TextDecoder();
+                    let buf='';
+                    while(true){
+                        const chunk=await reader.read();if(chunk.done)break;
+                        buf+=dec.decode(chunk.value,{stream:true});
+                        const parts=buf.split('\n');buf=parts.pop();
+                        parts.forEach(function(line){
+                            if(line.indexOf('data: ')!==0)return;const raw=line.slice(6).trim();if(!raw||raw==='[DONE]')return;
+                            try{const d=JSON.parse(raw);const delta=d.choices&&d.choices[0]&&d.choices[0].delta&&d.choices[0].delta.content;
+                                if(delta){oracleFullText+=delta;el.textContent=oracleFullText;scrollBot(document.getElementById('oraclePanel'));}
+                            }catch(e2){}
+                        });
+                    }
+                }
+                el.innerHTML=renderMD(oracleFullText);
+                conversationHistory.push({role:'assistant',content:oracleFullText});
+                document.getElementById('oracleChatInput').style.display='block';
+                faireParlerOracle(oracleFullText);
+            }catch(e){
+                document.getElementById('oracleLoading').style.display='none';
+                const err=document.createElement('span');err.className='oracle-error';err.textContent='⚠ '+e.message;
+                document.getElementById('oracleBody').appendChild(err);
+            }
+        }
+
+        // ===== MISTRAL — CHAT SUIVI (FETCH API) =====
+        async function poserQuestionOracle(){
+            const inp=document.getElementById('chatInput'),q=inp.value.trim();if(!q)return;
+            inp.value='';
+            const msgs=document.getElementById('chatMessages');msgs.style.display='block';
+            const uN=document.createElement('div');uN.className='msg-user';uN.textContent=consultant.prenom+' : '+q;msgs.appendChild(uN);
+            const aN=document.createElement('div');aN.className='msg-oracle';msgs.appendChild(aN);
+            scrollBot(msgs);conversationHistory.push({role:'user',content:q});let rep='';
+            
+            try{
+                const apiKey=sanitizeKey(consultant.apiKey||recupererCle());
+                const res=await fetch(MISTRAL_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:MISTRAL_MODEL,stream:true,temperature:0.7,max_tokens:400,messages:conversationHistory})});
+                if(!res.ok)throw new Error('Erreur '+res.status);
+                if(!res.body){
+                    rep=parseSSE(await res.text());
+                }else{
+                    const reader=res.body.getReader(),dec=new TextDecoder();
+                    let buf='';
+                    while(true){
+                        const chunk=await reader.read();if(chunk.done)break;
+                        buf+=dec.decode(chunk.value,{stream:true});
+                        const parts=buf.split('\n');buf=parts.pop();
+                        parts.forEach(function(line){
+                            if(line.indexOf('data: ')!==0)return;const raw=line.slice(6).trim();if(!raw||raw==='[DONE]')return;
+                            try{const d=JSON.parse(raw);const delta=d.choices&&d.choices[0]&&d.choices[0].delta&&d.choices[0].delta.content;
+                                if(delta){rep+=delta;aN.textContent=rep;scrollBot(msgs);}
+                            }catch(e2){}
+                        });
+                    }
+                }
+                aN.innerHTML=renderMD(rep);conversationHistory.push({role:'assistant',content:rep});faireParlerOracle(rep);
+            }catch(e){aN.className='oracle-error';aN.textContent='⚠ '+e.message;}
+        }
+
+        // ===== MICRO =====
+        function activerMicro(){
+            const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+            const st=document.getElementById('microStatus'),btn=document.getElementById('btnMicro');
+            if(!SR){
+                st.textContent='Micro bloqué sur Safari. Assurez-vous d\'être en HTTPS.';
+                st.style.display='block';
+                setTimeout(function(){st.style.display='none';},4000);
+                return;
+            }
+            const r=new SR();r.lang='fr-FR';r.interimResults=false;r.maxAlternatives=1;
+            r.onstart=function(){btn.classList.add('active');st.textContent='Écoute...';st.style.display='block';};
+            r.onresult=function(e){if(e.results&&e.results[0]&&e.results[0][0])document.getElementById('chatInput').value=e.results[0][0].transcript;};
+            r.onerror=function(e){
+                st.textContent='Erreur : '+(e.error === 'not-allowed' ? 'Permission refusée' : e.error);
+                st.style.display='block';
+                btn.classList.remove('active');
+            };
+            r.onend=function(){btn.classList.remove('active');setTimeout(function(){st.style.display='none';},2000);};
+            try{r.start();}catch(e){st.textContent='Impossible de démarrer le micro.';st.style.display='block';}
+        }
+
+        // ── DÉTECTION PROTOCOLE AU CHARGEMENT (CORS BANNER) ──
+        (function(){
+            const proto = window.location.protocol;
+            const banner = document.getElementById('corsBanner');
+            const protoEl = document.getElementById('corsProto');
+            if(proto==='file:' || proto==='content:' || proto==='blob:'){
+                if(banner) banner.style.display='block';
+                if(protoEl) protoEl.textContent = proto + '//';
+            }
+        })();
+
+        // ===== DÉCLENCHEURS (EVENT LISTENERS) =====
+        document.getElementById('loginBtn').addEventListener('click', ouvrirSession);
+        document.getElementById('btnReveal').addEventListener('click', revelerTirage);
+        document.getElementById('btnOracle').addEventListener('click', lancerAnalyseMistral);
+        document.getElementById('btnNouveau').addEventListener('click', nouveauTirage);
+        document.getElementById('btnQuitter').addEventListener('click', retourLogin);
+        document.getElementById('btnSend').addEventListener('click', poserQuestionOracle);
+        document.getElementById('btnMicro').addEventListener('click', activerMicro);
+        document.getElementById('chatInput').addEventListener('keydown', function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();poserQuestionOracle();}});
+        
+        ['f-prenom','f-question','f-apikey'].forEach(function(id){
+            const el=document.getElementById(id);
+            if(el)el.addEventListener('keydown',function(e){if(e.key==='Enter')ouvrirSession();});
+        });
+
+        // Déblocage de l'Audio Apple dès le premier toucher/clic n'importe où sur la page
+        document.addEventListener('touchstart', debloquerAudioApple, { once: true, passive: true });
+        document.addEventListener('click', debloquerAudioApple, { once: true, passive: true });
+
+        if(window.particlesJS){
+            try{particlesJS('particles-js',{particles:{number:{value:55},color:{value:'#c9a84c'},opacity:{value:.22,random:true},size:{value:1.6},line_linked:{enable:true,distance:130,color:'#c9a84c',opacity:.06},move:{enable:true,speed:.28}}});}catch(e){}
+        }
+    </script>
+</body>
+</html>
