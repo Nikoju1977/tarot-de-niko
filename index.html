@@ -7,6 +7,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Tarot de Niko">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
     <title>L'Oracle — Tarot Jodorowsky · Mistral AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
@@ -588,6 +591,13 @@
 
         if(window.particlesJS){
             try{particlesJS('particles-js',{particles:{number:{value:55},color:{value:'#c9a84c'},opacity:{value:.22,random:true},size:{value:1.6},line_linked:{enable:true,distance:130,color:'#c9a84c',opacity:.06},move:{enable:true,speed:.28}}});}catch(e){}
+        }
+
+        // Service Worker (PWA)
+        if('serviceWorker' in navigator){
+            window.addEventListener('load', function(){
+                navigator.serviceWorker.register('/sw.js').catch(function(){});
+            });
         }
     </script>
 </body>
