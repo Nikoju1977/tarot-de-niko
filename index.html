@@ -13,7 +13,18 @@
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <title>L'Oracle — Tarot Jodorowsky · Mistral AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>/* Studio Niko · helpers vague C */
+window.safeStorage = window.safeStorage || (function(){var mem=new Map(),ls=null;try{ls=window.localStorage;var t='__niko__';ls.setItem(t,'1');ls.removeItem(t);}catch(e){ls=null;}
+return{getItem:function(k){try{return ls?ls.getItem(k):(mem.has(k)?mem.get(k):null);}catch(e){return mem.has(k)?mem.get(k):null;}},
+setItem:function(k,v){try{if(ls){ls.setItem(k,String(v));return;}}catch(e){}mem.set(k,String(v));},
+removeItem:function(k){try{if(ls)ls.removeItem(k);}catch(e){}mem.delete(k);},
+clear:function(){try{if(ls)ls.clear();}catch(e){}mem.clear();},
+key:function(i){try{if(ls)return ls.key(i);}catch(e){}var a=Array.from(mem.keys());return i<a.length?a[i]:null;},
+get length(){try{if(ls)return ls.length;}catch(e){}return mem.size;}};})();
+window.nikoFetch = window.nikoFetch || function(url,opts){function xhr(){opts=opts||{};return new Promise(function(res,rej){var x=new XMLHttpRequest();x.open((opts.method||'GET'),url,true);if(opts.headers){Object.keys(opts.headers).forEach(function(h){try{x.setRequestHeader(h,opts.headers[h]);}catch(e){}});}x.onload=function(){res({ok:x.status>=200&&x.status<300,status:x.status,statusText:x.statusText,url:url,text:function(){return Promise.resolve(x.responseText);},json:function(){return Promise.resolve(JSON.parse(x.responseText));},headers:{get:function(n){return x.getResponseHeader(n);}}});};x.onerror=function(){rej(new TypeError('Network request failed'));};x.send(opts.body||null);});}
+if(window.fetch){return window.fetch(url,opts).catch(function(){return xhr();});}return xhr();};
+</script>
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <style>
         :root{--gold:#c9a84c;--gold-hi:#e8c870;--gold-lo:#6b5520;--gold-glow:rgba(201,168,76,0.18);--ink:#07060a;--ink2:#100e0c;--border:#2c2618;--text:#d6cdc2;--dim:#8a7a65}
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -168,7 +179,7 @@
                 </select>
             </div>
             <div class="field"><label>Clé API Mistral AI</label><input type="password" id="f-apikey" autocomplete="off" placeholder="..."></div>
-            <p class="api-note">Stockée uniquement dans ton navigateur (localStorage). Sans clé, l'oracle IA est désactivé.</p>
+            <p class="api-note">Stockée uniquement dans ton navigateur (safeStorage). Sans clé, l'oracle IA est désactivé.</p>
             <button class="btn btn-primary login-btn" id="loginBtn">✦ Ouvrir la Table ✦</button>
         </div>
 
@@ -281,8 +292,8 @@
         let consultant={}, spreadKey='6', tirage=[], oracleLaunched=false, conversationHistory=[], oracleFullText='';
 
         // ===== GESTION SÉCURISÉE DU LOCALSTORAGE =====
-        function sauverCle(cle) { try { localStorage.setItem('oracle_apikey', cle); } catch(e) { console.warn("Stockage local désactivé"); } }
-        function recupererCle() { try { return localStorage.getItem('oracle_apikey') || ''; } catch(e) { return ''; } }
+        function sauverCle(cle) { try { safeStorage.setItem('oracle_apikey', cle); } catch(e) { console.warn("Stockage local désactivé"); } }
+        function recupererCle() { try { return safeStorage.getItem('oracle_apikey') || ''; } catch(e) { return ''; } }
 
         // ===== SPEECH (GÉRÉ POUR IOS SAFARI) =====
         let speechVoices=[];
@@ -470,7 +481,7 @@
             
             conversationHistory=[{role:'system',content:sys},{role:'user',content:usr}];
             try{
-                const res=await fetch(MISTRAL_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:MISTRAL_MODEL,stream:true,temperature:0.7,max_tokens:600,messages:conversationHistory})});
+                const res=await nikoFetch(MISTRAL_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:MISTRAL_MODEL,stream:true,temperature:0.7,max_tokens:600,messages:conversationHistory})});
                 if(!res.ok)throw new Error('HTTP '+res.status+' — vérifie ta clé API.');
                 
                 document.getElementById('oracleLoading').style.display='none';
@@ -515,7 +526,7 @@
             
             try{
                 const apiKey=sanitizeKey(consultant.apiKey||recupererCle());
-                const res=await fetch(MISTRAL_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:MISTRAL_MODEL,stream:true,temperature:0.7,max_tokens:400,messages:conversationHistory})});
+                const res=await nikoFetch(MISTRAL_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:MISTRAL_MODEL,stream:true,temperature:0.7,max_tokens:400,messages:conversationHistory})});
                 if(!res.ok)throw new Error('Erreur '+res.status);
                 if(!res.body){
                     rep=parseSSE(await res.text());
