@@ -1,6 +1,8 @@
 // Route Vercel Node.js. Désactivée sans clé ET rate limiter Redis Upstash.
 // Déploiement GitHub Pages : ce fichier n'est pas exécuté.
-import {createHash} from 'node:crypto';
+import {createHmac} from 'node:crypto';
+import {DECK,SPREADS} from '../js/tarot-data.js';
+import {analyzeSpread} from '../js/tarot-engine.js';
 
 const ENDPOINT='https://api.mistral.ai/v1/chat/completions';
 const SYSTEM='Tu es un lecteur symbolique du Tarot de Marseille dans une approche introspective. '+ 
@@ -15,7 +17,7 @@ async function checkQuota(req){
   if(!origin||!token)throw new Error('Limiter missing');
   const identity=String(req.headers['x-vercel-forwarded-for']||req.headers['x-forwarded-for']||req.socket?.remoteAddress||'unknown').split(',')[0].trim();
   const hour=Math.floor(Date.now()/3600000);
-  const id=createHash('sha256').update(identity).digest('hex').slice(0,24);
+  const id=createHmac('sha256',process.env.RATE_LIMIT_SECRET||process.env.MISTRAL_API_KEY).update(identity).digest('hex').slice(0,24);
   const response=await fetch(origin.replace(/\/$/,'')+'/pipeline',{
     method:'POST',
     headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
@@ -34,20 +36,31 @@ export default async function handler(req,res){
   if(req.method!=='POST')return fail(res,405,'Méthode refusée');
   const origin=req.headers.origin;
   const host=req.headers.host;
-  if(!host||!origin||new URL(origin).host!==host)return fail(res,403,'Origine refusée');
+  let validOrigin=false;
+  try{validOrigin=Boolean(host&&origin&&new URL(origin).host===host);}catch(_){return fail(res,403,'Origine refusée');}
+  if(!validOrigin)return fail(res,403,'Origine refusée');
   if(!process.env.MISTRAL_API_KEY||!process.env.UPSTASH_REDIS_REST_URL||!process.env.UPSTASH_REDIS_REST_TOKEN)
     return fail(res,503,'IA serveur non configurée');
   try{
     const body=typeof req.body==='string'?JSON.parse(req.body):req.body;
     if(!body||JSON.stringify(body).length>9000)return fail(res,413,'Données trop longues');
-    if(!Array.isArray(body.cards)||body.cards.length<3||body.cards.length>6)
+    const spread=SPREADS[body.spread];
+    if(!spread||!Array.isArray(body.cards)||body.cards.length!==spread.positions.length)
       return fail(res,400,'Tirage invalide');
-    const cards=body.cards.map(c=>validText(c.position,60)+' : '+validText(c.name,90)+
-      ' — '+validText(c.theme,100)+(c.reversed?' (renversée)':'')).join('\n');
+    const dictionary=new Map(DECK.map(c=>[c.id,c]));
+    const selected=body.cards.map((entry,index)=>{
+      const card=dictionary.get(entry?.id);
+      if(!card)return null;
+      return {...card,position:spread.positions[index],reversed:entry.reversed===true};
+    });
+    if(selected.some(c=>!c)||new Set(selected.map(c=>c.id)).size!==selected.length)
+      return fail(res,400,'Cartes invalides');
+    const analysis=analyzeSpread(selected);
     const question=validText(body.question,500);
     const followup=validText(body.followup,600);
     const messages=[{role:'system',content:SYSTEM},
-      {role:'user',content:'Intention : '+question+'\nTirage :\n'+cards}];
+      {role:'user',content:'Intention : '+question+'\nTirage :\n'+analysis.summary+
+        '\nRelations :\n'+[...analysis.themes,...analysis.relations].join('\n')}];
     if(Array.isArray(body.history)){
       for(const turn of body.history.slice(-6)){
         if(turn&&['user','assistant'].includes(turn.role)&&typeof turn.content==='string')
