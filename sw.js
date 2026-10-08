@@ -1,12 +1,12 @@
 /* Oracle V2 : mode hors ligne limité aux ressources publiques de ce projet. */
-const CACHE_NAME='tarot-de-niko-v3';
+const CACHE_NAME='tarot-de-niko-v4';
 const BASE=new URL('./',self.registration.scope);
 const OFFLINE=new URL('index.html',BASE).href;
 const PATHS=[
   './','index.html','styles.css','manifest.json',
   'icons/icon-192.png','icons/icon-512.png',
   'js/app.js','js/tarot-data.js','js/tarot-engine.js',
-  'js/card-art.js','js/oracle.js','js/vault.js'
+  'js/card-art.js','js/oracle.js','js/vault.js','js/mistral-key.js'
 ];
 const URLS=PATHS.map(path=>new URL(path,BASE).href);
 const CACHEABLE=new Set(URLS);
