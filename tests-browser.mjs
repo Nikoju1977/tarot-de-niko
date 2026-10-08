@@ -41,11 +41,10 @@ try{
 
   await page.locator('#lockVault').click();
   // Le chemin import est accessible depuis l'écran verrouillé.
+  page.once('dialog',dialog=>dialog.accept());
   await page.locator('#importVaultFile').setInputFiles({
     name:'archive.json',mimeType:'application/json',buffer:Buffer.from(encrypted)
   });
-  page.once('dialog',dialog=>dialog.accept());
-  await page.locator('#importVault').click();
   await page.locator('#vaultPassword').fill('ma phrase secrète solide');
   await page.locator('#vaultOpen').click();
   await page.locator('#journalEntries .journal-entry').first().waitFor();
