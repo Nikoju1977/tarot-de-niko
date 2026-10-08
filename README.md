@@ -1,28 +1,45 @@
 ![Tarot de Niko](banner.svg)
 
-# L'Oracle Tarot de Niko
+# L'Oracle — Tarot de Niko
 
-[![Démo](https://img.shields.io/badge/Démo-en_ligne-00ff9d?style=flat-square&labelColor=050a0d)](https://nikoju1977.github.io/tarot-de-niko/) [![PWA](https://img.shields.io/badge/PWA-installable-00d4ff?style=flat-square&labelColor=050a0d)](#) [![Licence](https://img.shields.io/badge/Licence-MIT-9fb4ba?style=flat-square&labelColor=050a0d)](LICENSE)
+[Démo sur GitHub Pages](https://nikoju1977.github.io/tarot-de-niko/) · [Licence MIT](LICENSE)
 
-Application de **tirage de tarot avec interprétation par IA** — streaming des réponses en temps réel, clé API protégée par coffre chiffré.
-
-**Démo** : [nikoju1977.github.io/tarot-de-niko](https://nikoju1977.github.io/tarot-de-niko/)
+Application web de tarot de Marseille, inspirée de l'approche psychologique de Jodorowsky, avec interprétation facultative par Mistral AI.
 
 ## Fonctionnalités
 
-- 🎴 Tirages interactifs avec animations
-- ✨ Interprétations générées par **Mistral AI** en streaming **SSE**
-- 🔐 Coffre **AES-256-GCM** (PBKDF2) pour la clé API — jamais stockée en clair
-- 🌐 Relais **Vercel Edge Function** (la clé ne transite pas côté client en production)
-- 📱 Mobile-first, installable
+- Tirages interactifs de 3, 4, 5 ou 6 cartes, parmi 78 arcanes.
+- Interprétation IA en streaming SSE et questions de suivi.
+- Lecture vocale et reconnaissance vocale lorsque le navigateur les prend en charge.
+- PWA installable, avec ressources locales accessibles hors ligne (l'IA nécessite une connexion).
 
-## Stack
+## Confidentialité et clé API
 
-`HTML/CSS/JS single-file` · `Mistral AI (SSE)` · `Web Crypto API` · `Vercel Edge Functions`
+Le site fonctionne **entièrement dans le navigateur** : il ne comporte **aucun serveur applicatif, proxy Vercel ou coffre chiffré** dans ce dépôt.
 
-## Lancer en local
+Si tu saisis une clé Mistral, elle est gardée **en mémoire pendant la consultation uniquement** et envoyée **directement au service Mistral par HTTPS**, avec le texte de ton tirage et de tes questions. Elle n'est plus enregistrée dans localStorage ; les anciennes clés qui y étaient conservées sont supprimées au chargement.
 
-Ouvrir `index.html`, saisir une clé Mistral (chiffrée localement à la volée).
+Une clé saisie côté navigateur n'est pas secrète vis-à-vis du propriétaire de l'appareil, des extensions installées ou des outils de développement. Utilise une clé personnelle aux droits et quotas limités. Sans clé, le tirage des cartes reste disponible, mais pas l'interprétation IA. Si l'appel échoue pour des raisons de CORS ou de réseau, un relais serveur correctement configuré sera nécessaire.
+
+## Démarrage
+
+Ouvre [la démo HTTPS](https://nikoju1977.github.io/tarot-de-niko/) ou sers localement le dossier :
+
+`python3 -m http.server 8000`
+
+Puis va sur http://localhost:8000/ (certaines fonctions exigent HTTPS ou un contexte sécurisé).
+
+## Tests
+
+Avec **Node.js 22 ou plus récent** :
+
+`node --test tests.js`
+
+La suite vérifie la syntaxe JS, les 78 cartes, la lecture SSE, la non-persistance de la clé API, ainsi que les chemins et le cache PWA.
+
+## Stack technique
+
+HTML · CSS · JavaScript natif · APIs Web du navigateur · Mistral AI REST/SSE · Service Worker · GitHub Pages.
 
 ## Licence
 

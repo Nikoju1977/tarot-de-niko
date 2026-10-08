@@ -1,74 +1,69 @@
-const CACHE_NAME = 'tarot-de-niko-v1';
-
+/* Tarot de Niko — service worker dédié au sous-chemin GitHub Pages. */
+const CACHE_NAME = 'tarot-de-niko-v2';
+const APP_BASE = new URL('./', self.registration.scope);
+const INDEX_URL = new URL('index.html', APP_BASE).href;
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  'https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap',
-  'https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js'
+  APP_BASE.href,
+  INDEX_URL,
+  new URL('manifest.json', APP_BASE).href,
+  new URL('icons/icon-192.png', APP_BASE).href,
+  new URL('icons/icon-512.png', APP_BASE).href
 ];
+const CACHEABLE = new Set(STATIC_ASSETS);
 
-// Install: cache static assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      // Cache local assets unconditionally, external with best-effort
-      return cache.addAll(['/', '/index.html', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'])
-        .then(() => {
-          return Promise.allSettled(
-            ['https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap',
-             'https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js']
-              .map(url => cache.add(url).catch(() => {}))
-          );
-        });
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(STATIC_ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
 
-// Activate: clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-      )
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then((keys) => Promise.all(
+        keys.filter((key) => key.startsWith('tarot-de-niko-') && key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      ))
+      .then(() => self.clients.claim())
   );
 });
 
-// Fetch: cache-first for local assets, network-first for API calls
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  const request = event.request;
+  if (request.method !== 'GET') return;
 
-  // Never intercept Mistral API calls
-  if (url.hostname === 'api.mistral.ai') {
-    return;
-  }
+  const url = new URL(request.url);
+  // Ne jamais intercepter les appels externes, notamment ceux à Mistral AI.
+  if (url.origin !== self.location.origin || !url.pathname.startsWith(APP_BASE.pathname)) return;
 
-  // Network-first for navigation (always fresh HTML)
-  if (event.request.mode === 'navigate') {
+  if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
+      fetch(request)
         .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          if (response.ok) {
+            event.waitUntil(
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()))
+            );
+          }
           return response;
         })
-        .catch(() => caches.match('/index.html'))
+        .catch(() => caches.match(request).then((cached) => cached || caches.match(INDEX_URL)))
     );
     return;
   }
 
-  // Cache-first for static assets
+  // N'enregistrer que les ressources publiques connues ; jamais les requêtes API.
+  if (!CACHEABLE.has(url.href)) return;
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    caches.match(request).then((cached) => {
       if (cached) return cached;
-      return fetch(event.request).then((response) => {
+      return fetch(request).then((response) => {
         if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          event.waitUntil(
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()))
+          );
         }
         return response;
       });
