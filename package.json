@@ -5,6 +5,6 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests.js",
-    "check": "node --check js/app.js && node --check js/tarot-data.js && node --check js/tarot-engine.js && node --check js/oracle.js && node --check js/vault.js && node --check js/card-art.js && node --check api/oracle.js"
+    "check": "node --check js/app.js && node --check js/tarot-data.js && node --check js/tarot-engine.js && node --check js/oracle.js && node --check js/vault.js && node --check js/card-art.js && node --check api/oracle.js && node --check js/mistral-key.js"
   }
 }
