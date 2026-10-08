@@ -45,6 +45,7 @@ try{
   await page.locator('#importVaultFile').setInputFiles({
     name:'archive.json',mimeType:'application/json',buffer:Buffer.from(encrypted)
   });
+  await page.locator('#status').filter({hasText:'Archive importée.'}).waitFor();
   await page.locator('#vaultPassword').fill('ma phrase secrète solide');
   await page.locator('#vaultOpen').click();
   await page.locator('#journalEntries .journal-entry').first().waitFor();
