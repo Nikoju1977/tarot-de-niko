@@ -78,10 +78,15 @@
             <textarea id="intention" rows="3" maxlength="500" placeholder="Qu'est-ce qui t'habite en ce moment ?"></textarea></label>
           <div class="session-options">
             <label class="check-option"><input type="checkbox" id="reverseCards"> Inclure les cartes renversées</label>
-            <details class="api-settings"><summary>Interprétation IA · options</summary>
-              <label class="field"><span>Clé personnelle Mistral (optionnelle)</span>
-                <input type="password" id="apiKey" autocomplete="off" placeholder="Non enregistrée" aria-describedby="apiHelp"></label>
-              <p id="apiHelp">Sur GitHub Pages, l'interprétation IA requiert ta propre clé, envoyée directement à Mistral. Sur un serveur correctement configuré, aucune clé visiteur n'est nécessaire. La lecture symbolique locale fonctionne toujours.</p>
+            <details class="api-settings" id="apiSettings" open><summary>Ma clé Mistral · configuration</summary>
+              <label class="field"><span>Clé API personnelle Mistral</span>
+                <input type="password" id="apiKey" autocomplete="new-password" spellcheck="false" placeholder="Colle ta clé ici une seule fois" aria-describedby="apiHelp apiKeyStatus"></label>
+              <div class="api-key-actions">
+                <button id="saveApiKey" type="button" class="outline-button">Mémoriser sur cet appareil</button>
+                <button id="forgetApiKey" type="button" class="text-button" hidden>Effacer ma clé</button>
+              </div>
+              <p id="apiKeyStatus" class="api-key-status" role="status" aria-live="polite">Vérification de la clé enregistrée…</p>
+              <p id="apiHelp">La clé mémorisée est chiffrée sur cet appareil et réutilisée automatiquement pour tes prochains tirages, même après fermeture du navigateur. Sur un appareil partagé, utilise-la sans l'enregistrer. Tu peux l'effacer ici à tout moment. La clé n'est jamais publiée sur GitHub. Les requêtes IA utilisent ton compte Mistral.</p>
             </details>
           </div>
           <button class="primary-button start-button" type="submit">Déployer les cartes <span aria-hidden="true">✧</span></button>
@@ -113,6 +118,7 @@
           <div class="oracle-label"><span aria-hidden="true">✧</span><h3>La voix de l'Oracle</h3><span class="small-label">MISTRAL AI · OPTIONNEL</span></div>
           <p class="oracle-explainer">La lecture locale est toujours disponible. L'IA approfondit les symboles si tu actives le service.</p>
           <button id="aiRead" class="outline-button" type="button">Approfondir avec l'IA <span aria-hidden="true">↗</span></button>
+          <button id="openApiSettings" class="text-button" type="button">Configurer ou modifier ma clé Mistral</button>
           <div id="aiResponse" class="ai-response" hidden></div>
           <div id="aiChat" class="ai-chat" hidden>
             <form id="followupForm" class="followup-row">
