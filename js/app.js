@@ -2,7 +2,7 @@ import {SPREADS,VERSION} from './tarot-data.js';
 import {drawSpread,localInterpretation,analyzeSpread} from './tarot-engine.js';
 import {cardArtwork} from './card-art.js';
 import {askOracle} from './oracle.js';
-import {vaultExists,isUnlocked,unlockVault,lockVault,listReadings,addReading,removeReading,exportEncryptedVault} from './vault.js';
+import {vaultExists,isUnlocked,unlockVault,lockVault,listReadings,addReading,removeReading,exportEncryptedVault,importEncryptedVault} from './vault.js';
 
 const $=(id)=>document.getElementById(id);
 const state={reading:null,key:'',revealed:new Set(),history:[],aiText:'',busy:false,controller:null,audio:null,ambient:false,pendingSave:false};
@@ -80,6 +80,7 @@ function newReading(){
   };
   state.key=$('apiKey').value.trim();
   $('apiKey').value='';
+  $('readingNote').value='';
   state.aiText='';state.history=[];state.revealed=new Set();
   $('interpretation').hidden=true;$('aiResponse').hidden=true;$('aiChat').hidden=true;
   $('aiRead').hidden=false;$('revealAll').hidden=false;
@@ -155,6 +156,7 @@ async function saveCurrentReading(){
   try{
     await addReading({name:state.reading.name,spread:state.reading.spread,
       question:state.reading.question,cards:state.reading.cards,
+      note:$('readingNote').value.trim().slice(0,1200),
       analysis:localInterpretation(state.reading.cards),aiText:state.aiText});
     status('Tirage enregistré dans ton grimoire chiffré.');
     if(!$('journal').hidden)renderJournal();
@@ -180,6 +182,7 @@ function renderJournal(){
     const readingText=document.createElement('p');readingText.style.whiteSpace='pre-line';
     readingText.textContent=reading.analysis+(reading.aiText?'\n\nInterprétation IA :\n'+reading.aiText:'');
     details.append(summary,readingText);
+    if(reading.note){const note=document.createElement('p');note.textContent='Note : '+reading.note;details.append(note);}
     const remove=document.createElement('button');remove.type='button';remove.className='text-button';
     remove.textContent='Supprimer cette entrée';
     remove.addEventListener('click',async()=>{
@@ -247,6 +250,30 @@ listeners('saveReading','click',saveCurrentReading);
 listeners('speakReading','click',speak);
 listeners('printReading','click',()=>window.print());
 listeners('ambientToggle','click',toggleAmbient);
+listeners('microphone','click',()=>{
+  const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!Speech){status('Reconnaissance vocale non disponible dans ce navigateur.');return;}
+  const recognition=new Speech();recognition.lang='fr-FR';recognition.interimResults=false;
+  recognition.onresult=(event)=>{const spoken=event.results?.[0]?.[0]?.transcript||'';
+    $('followup').value=spoken.slice(0,600);$('followup').focus();};
+  recognition.onerror=()=>status('Micro non disponible ou permission refusée.');
+  try{recognition.start();status('Micro activé : tu peux parler.');}
+  catch(_){status('Impossible de démarrer le micro.');}
+});
+listeners('importVault','click',()=>$('importVaultFile').click());
+listeners('importVaultFile','change',async(event)=>{
+  const file=event.target.files?.[0];
+  if(!file)return;
+  try{
+    if(vaultExists()&&!confirm('Remplacer le grimoire existant de cet appareil ? Exporte-le auparavant si besoin.'))return;
+    importEncryptedVault(await file.text());
+    $('vaultForm').hidden=false;$('vaultPanel').hidden=true;
+    $('vaultOpen').textContent='Déverrouiller le grimoire';
+    $('vaultPassword').value='';
+    status('Archive importée. Déverrouille avec sa phrase secrète.');
+  }catch(err){status(err.message);}
+  finally{event.target.value='';}
+});
 listeners('vaultForm','submit',async e=>{
   e.preventDefault();
   const password=$('vaultPassword').value;
@@ -267,7 +294,7 @@ listeners('exportVault','click',()=>{
   catch(e){status(e.message);}
 });
 // Garde la consultation privée lors du rechargement, et ne persiste jamais la clé API.
-window.addEventListener('pagehide',()=>{cleanAsync();if(state.ambient)toggleAmbient();lockVault();});
+window.addEventListener('pagehide',()=>{cleanAsync();state.key='';if(state.ambient)toggleAmbient();lockVault();});
 if('serviceWorker'in navigator&&location.protocol.startsWith('http')){
   window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 }
