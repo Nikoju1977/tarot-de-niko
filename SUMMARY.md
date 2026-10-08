@@ -1,40 +1,22 @@
-# Summary of Improvements
+# Tarot de Niko — état de la V2
 
-## Improvements Completed:
+Version modulaire proposée dans la Pull Request V2.
 
-1. **Fixed Truncated CSS and JavaScript**  
-   - Resolved issues with CSS and JavaScript files appearing truncated, ensuring full functionality in the application.
+## Réalisé
 
-2. **Created index-improved.html**  
-   - Improved the index page to enhance user experience and loading times.
+- Interface HTML/CSS responsive et accessible de base.
+- 78 cartes et illustrations SVG originales générées à la demande.
+- Mélange cryptographique et moteur de lecture introspective.
+- Intégration Mistral SSE directe, plus backend Vercel optionnel.
+- Grimoire opt-in chiffré (AES-GCM, PBKDF2), notes et import/export.
+- Lecture vocale, dictée navigateur et ambiance sonore facultative.
+- Service worker PWA mis à jour et tests GitHub Actions.
 
-3. **Added CHANGELOG.md**  
-   - Documented all changes and updates made to the project chronologically for transparency.
+## Non effectué / à vérifier
 
-4. **Added DOCUMENTATION.md**  
-   - Comprehensive documentation covering usage, installation, and configuration of the project.
+- Activation réelle du backend : dépend de secrets Mistral et d'Upstash Redis sur Vercel.
+- Vérifications manuelles multi-navigateurs et audit d'accessibilité complet.
+- Reproduction historique des 78 cartes : les illustrations actuelles sont symboliques originales.
+- Publication : conditionnée à la fusion de la Pull Request.
 
-5. **Updated README.md**  
-   - Enhanced README with detailed project information, setup, and contribution guidelines.
-
-6. **Created tests.js**  
-   - Implemented tests to ensure code quality and reliability.
-
-## Bug Fixes:
-- Fixed various bugs related to user inputs and server responses that were affecting the overall functionality of the application.
-
-## Features:
-- Introduced new features such as user authentication, improved load times, and accessibility enhancements.
-
-## Deployment Status:
-- The application is currently deployed and running smoothly in the production environment.
-
-## Next Steps:
-- Continue monitoring application performance.
-- Regular updates to the documentation as new features are added.
-- Plan and implement additional features based on user feedback.
-
----
-
-*Date of Documentation: 2026-04-03 12:12:11 (UTC)*  
-*Author: Nikoju1977*
+Les affirmations anciennes de backend MongoDB, d'authentification des utilisateurs et de coffre local de clé API ne correspondaient pas à ce dépôt ; cette documentation est corrigée.

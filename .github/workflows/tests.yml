@@ -14,5 +14,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Vérifier les modules ES
+        run: npm run check
       - name: Tests de régression
-        run: node --test tests.js
+        run: npm test

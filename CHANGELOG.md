@@ -1,33 +1,17 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## [2.0.0] — proposition du 8 octobre 2026
 
-## [Unreleased]
+- Refonte responsive accessible, typographie et table immersive.
+- Modules natifs ES, 78 arcanes et illustrations SVG générées localement.
+- Analyse symbolique locale : nombres, thèmes, directions des regards.
+- Streaming IA Mistral amélioré, serveur Vercel en mode fermé par défaut avec quotas Redis.
+- Grimoire chiffré avec notes, sauvegarde et import/export.
+- Ambiance sonore optionnelle, lecture et dictée vocales.
+- Service Worker/PWA adapté à GitHub Pages, nouveaux tests Node.
+- Mise à jour de la documentation et consignes de confidentialité.
 
-### Improvements
-- Improved performance of card shuffling algorithm for better randomness.
-- Enhanced UI for better accessibility, including larger text and improved color contrast.
+## [1.x] — historique
 
-### Bug Fixes
-- Fixed crash on invalid card input when selecting a card.
-- Resolved issue with incorrect card image loading.
-- Addressed memory leak when viewing multiple spreads.
-
-## [1.0.0] - 2022-07-15 12:00:00
-
-### Improvements
-- Initial release of the Tarot Jodorowsky application.
-- Introduced tarot card meanings for all 78 cards.
-
-### Bug Fixes
-- None.
-
-## [1.1.0] - 2023-11-25 09:00:00
-
-### Improvements
-- Added support for multiple languages.
-- Included a feature for saving favorite card layouts.
-
-### Bug Fixes
-- Fixed layout issues on smaller screens.
-
+La version précédente était monolithique et utilisait des images externes.
+Les corrections de sécurité, de streaming et de PWA ont été fusionnées dans `main` avant le chantier V2.

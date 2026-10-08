@@ -1,12 +1,12 @@
 {
-  "name": "L'Oracle — Tarot Jodorowsky",
+  "name": "L'Oracle — Tarot de Niko",
   "short_name": "Tarot de Niko",
-  "description": "Tirage de tarot de Marseille selon la méthode Jodorowsky, interprété par Mistral AI.",
+  "description": "Tarot de Marseille : 78 arcanes, lectures symboliques introspectives et grimoire privé chiffré.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#07060a",
-  "theme_color": "#07060a",
+  "background_color": "#0b0a0c",
+  "theme_color": "#0b0a0c",
   "lang": "fr",
   "orientation": "portrait-primary",
   "categories": [
