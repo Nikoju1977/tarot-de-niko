@@ -10,7 +10,7 @@
 - Tirages à 3, 4, 5 et 6 positions, sans cartes répétées, mélange Fisher–Yates avec aléa Web Crypto.
 - Relations entre arcanes majeurs, direction des regards, répétitions numériques, thématiques dominantes.
 - Lecture symbolique locale, disponible sans clé, compte, backend ou accès à Mistral.
-- Analyse IA par streaming SSE et questions de suivi, avec clé personnelle en mémoire ou backend Vercel configuré.
+- Analyse IA par streaming SSE et questions de suivi ; clé personnelle réutilisable entre les tirages, avec mémorisation chiffrée **sur demande**, ou backend Vercel configuré.
 - Journal facultatif chiffré AES-GCM et PBKDF2, notes et sauvegarde/restauration chiffrées.
 - Voix française (synthèse), dictée si le navigateur la prend en charge, ambiance sonore désactivée par défaut.
 - PWA installable, navigation clavier, mise en page mobile, animations réduites si configurées.
@@ -35,6 +35,7 @@ Tests : Node.js 22+ puis `npm test` (aucune dépendance npm requise). Vérificat
 - `js/tarot-engine.js` — mélange, tirage, lecture symbolique.
 - `js/card-art.js` — illustrations SVG générées localement.
 - `js/oracle.js` — client de streaming Mistral.
+- `js/mistral-key.js` — mémorisation chiffrée facultative de la clé personnelle dans IndexedDB.
 - `js/vault.js` — chiffrement local opt-in du grimoire.
 - `js/app.js` — contrôleur d'interface et interactions.
 - `api/oracle.js` — fonction Node/Vercel sécurisée, inactive sans configuration.
@@ -43,7 +44,7 @@ Tests : Node.js 22+ puis `npm test` (aucune dépendance npm requise). Vérificat
 
 ## IA et confidentialité
 
-**GitHub Pages ne peut pas exécuter le backend `api/oracle.js`.** La lecture locale fonctionne sur GitHub Pages. Pour l'IA, un utilisateur peut fournir une clé Mistral personnelle ; elle est envoyée directement à Mistral depuis son navigateur, n'est pas enregistrée et est effacée à la fermeture de la page. En présence d'un backend Vercel configuré, le site peut utiliser la clé serveur sans demander la clé au visiteur.
+**GitHub Pages ne peut pas exécuter le backend `api/oracle.js`.** La lecture locale fonctionne sur GitHub Pages. Pour l'IA, un utilisateur peut fournir sa clé Mistral personnelle dans **Ma clé Mistral · configuration**. Elle est réutilisée pendant tous les tirages de la visite. Le bouton **Mémoriser sur cet appareil** conserve facultativement la clé chiffrée (AES-GCM) dans IndexedDB avec une clé de chiffrement non exportable ; elle sera ensuite chargée automatiquement lors des prochaines visites. Le bouton **Effacer ma clé** la supprime. Si la mémorisation n'est pas demandée, la clé reste uniquement en mémoire pendant la visite. Les appels sont envoyés directement à Mistral depuis le navigateur. En présence d'un backend Vercel configuré, le site peut utiliser la clé serveur sans demander la clé au visiteur.
 
 Pour un déploiement Vercel avec IA serveur, configurer en environnement **privé** les trois variables :
 - `MISTRAL_API_KEY`
@@ -52,7 +53,7 @@ Pour un déploiement Vercel avec IA serveur, configurer en environnement **priv�
 
 Sans les trois valeurs, l'endpoint retourne 503. La clé n'est jamais ajoutée au dépôt. Le limiter Redis impose au plus 12 demandes par heure et par adresse IP hachée ; prévoir des restrictions budgétaires et des protections complémentaires avant commercialisation. Une valeur facultative `RATE_LIMIT_SECRET` permet de décorréler le hachage du secret Mistral.
 
-Les tirages et notes ne sont conservés que lorsque le grimoire est déverrouillé et qu'un enregistrement est demandé. **Perdre la phrase secrète signifie perdre l'accès aux archives chiffrées.** Les requêtes vers Mistral transmettent l'intention, les cartes et les questions de suivi ; ne saisis pas de données sensibles dans la conversation.
+Le chiffrement local de la clé Mistral empêche son stockage en clair, mais **n'empêche pas un script exécuté sur le même site, une extension ou une personne ayant accès au navigateur de la déchiffrer**. Évite cette option sur un appareil partagé. Pour fournir une IA à tous les visiteurs sans demander leur propre clé, il faut déployer l'API serveur avec un secret d'environnement sur Vercel. Les tirages et notes ne sont conservés que lorsque le grimoire est déverrouillé et qu'un enregistrement est demandé. **Perdre la phrase secrète signifie perdre l'accès aux archives chiffrées.** Les requêtes vers Mistral transmettent l'intention, les cartes et les questions de suivi ; ne saisis pas de données sensibles dans la conversation.
 
 ## Limites
 
