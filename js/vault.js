@@ -63,3 +63,18 @@ export function exportEncryptedVault(){
   if(!data)throw new Error('Aucun journal chiffré.');
   return data;
 }
+
+export function importEncryptedVault(contents){
+  if(typeof contents!=='string'||contents.length>3000000)throw new Error('Archive trop volumineuse.');
+  let parsed;
+  try{parsed=JSON.parse(contents);}catch(_){throw new Error('Archive JSON invalide.');}
+  if(parsed?.v!==1||parsed.iter!==ITERATIONS||
+     !['salt','iv','data'].every(field=>typeof parsed[field]==='string'&&parsed[field].length>0))
+    throw new Error('Format d’archive non pris en charge.');
+  try{
+    if(from64(parsed.salt).length!==16||from64(parsed.iv).length!==12||from64(parsed.data).length<16)
+      throw new Error();
+  }catch(_){throw new Error('Archive chiffrée invalide.');}
+  session=null;
+  localStorage.setItem(KEY,JSON.stringify(parsed));
+}
