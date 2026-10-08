@@ -57,6 +57,14 @@ try{
   const usedKeys=[];
   await keyPage.route('https://api.mistral.ai/v1/chat/completions',async route=>{
     const request=route.request();
+    if(request.method()==='OPTIONS'){
+      await route.fulfill({status:204,headers:{
+        'access-control-allow-origin':'*',
+        'access-control-allow-methods':'POST, OPTIONS',
+        'access-control-allow-headers':'Authorization, Content-Type'
+      }});
+      return;
+    }
     usedKeys.push(request.headers()['authorization']);
     await route.fulfill({
       status:200,
@@ -67,10 +75,10 @@ try{
   });
   await keyPage.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded'});
   await keyPage.waitForFunction(()=>document.title.includes('v2.0.0'));
-  await keyPage.locator('#apiKeyStatus').getByText('Aucune clé', {exact:false}).waitFor();
+  await keyPage.locator('#apiKeyStatus').filter({hasText:'Aucune clé'}).waitFor();
   await keyPage.locator('#apiKey').fill('mistral-test-cle-privee-123');
   await keyPage.locator('#saveApiKey').click();
-  await keyPage.locator('#apiKeyStatus').getByText('Clé enregistrée', {exact:false}).waitFor();
+  await keyPage.locator('#apiKeyStatus').filter({hasText:'Clé enregistrée'}).waitFor();
   const storedState=await keyPage.evaluate(async()=>{
     const request=indexedDB.open('tarot-de-niko-mistral-v1');
     const db=await new Promise((resolve,reject)=>{
@@ -91,25 +99,25 @@ try{
   assert.doesNotMatch(storedState.payload,/mistral-test-cle-privee-123/,'clé non stockée en clair');
 
   await keyPage.reload({waitUntil:'domcontentloaded'});
-  await keyPage.locator('#apiKeyStatus').getByText('prête pour tous tes tirages', {exact:false}).waitFor();
+  await keyPage.locator('#apiKeyStatus').filter({hasText:'prête pour tous tes tirages'}).waitFor();
   await keyPage.locator('#sessionForm button[type=submit]').click();
   await keyPage.locator('#revealAll').click();
   await keyPage.locator('#aiRead').click();
-  await keyPage.locator('#aiResponse').getByText('Lecture de démonstration.').waitFor();
+  await keyPage.locator('#aiResponse').filter({hasText:'Lecture de démonstration.'}).waitFor();
   assert.equal(usedKeys.at(-1),'Bearer mistral-test-cle-privee-123');
 
   // Nouveau tirage : la clé enregistrée reste utilisable sans nouvelle saisie.
   await keyPage.locator('#newSpread').click();
   await keyPage.locator('#revealAll').click();
   await keyPage.locator('#aiRead').click();
-  await keyPage.locator('#aiResponse').getByText('Lecture de démonstration.').waitFor();
+  await keyPage.locator('#aiResponse').filter({hasText:'Lecture de démonstration.'}).waitFor();
   assert.equal(usedKeys.length,2,'deux appels IA autorisés après plusieurs tirages');
 
   await keyPage.locator('#openApiSettings').click();
   await keyPage.locator('#forgetApiKey').click();
-  await keyPage.locator('#apiKeyStatus').getByText('effacée de cet appareil', {exact:false}).waitFor();
+  await keyPage.locator('#apiKeyStatus').filter({hasText:'effacée de cet appareil'}).waitFor();
   await keyPage.reload({waitUntil:'domcontentloaded'});
-  await keyPage.locator('#apiKeyStatus').getByText('Aucune clé enregistrée', {exact:false}).waitFor();
+  await keyPage.locator('#apiKeyStatus').filter({hasText:'Aucune clé enregistrée'}).waitFor();
   await keyPage.close();
 
   const mobile=await browser.newPage({viewport:{width:390,height:844}});
