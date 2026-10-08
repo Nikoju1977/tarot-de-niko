@@ -5,7 +5,7 @@ import {DECK,MAJORS,MINORS,SPREADS,SUITS} from './js/tarot-data.js';
 import {secureRandomInt,shuffle,drawSpread,analyzeSpread,localInterpretation} from './js/tarot-engine.js';
 import {cardArtwork} from './js/card-art.js';
 import {streamCompletion} from './js/oracle.js';
-import {unlockVault,vaultExists,lockVault,listReadings,addReading,removeReading,exportEncryptedVault} from './js/vault.js';
+import {unlockVault,vaultExists,lockVault,listReadings,addReading,removeReading,exportEncryptedVault,importEncryptedVault} from './js/vault.js';
 import api from './api/oracle.js';
 
 const html=fs.readFileSync('index.html','utf8');
@@ -112,6 +112,8 @@ test('journal : chiffré en AES-GCM, verrouillage et suppression',async()=>{
   const encrypted=exportEncryptedVault();
   assert.ok(!encrypted.includes('Ma question privée'),'texte non visible dans l’archive');
   lockVault();
+  assert.throws(()=>importEncryptedVault('{not-json}'));
+  importEncryptedVault(encrypted);
   await assert.rejects(()=>unlockVault('phrase-incorrecte'));
   await unlockVault(password);
   assert.equal(listReadings()[0].id,id);
