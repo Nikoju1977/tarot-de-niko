@@ -157,3 +157,9 @@ h1 em,h2 em{color:var(--gold-soft);font-weight:400}
 @media(max-width:390px){.hero-art{transform:scale(.56);margin:-65px 0}.tarot-slot{flex-basis:calc((100% - 10px)/2)}.hero-meta{font-size:8px}.brand-mark{font-size:33px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition-duration:.01ms!important}.flip-card .card-sides{transition:none}}
 @media print{body{background:white;color:black}.topbar,.board-actions,.reading-tools,.oracle-section button,.footer,.ambient-glow,.grain,.live-status{display:none!important}.view:not(#reading){display:none!important}#reading,.interpretation{display:block!important}.card-board{break-inside:avoid}.card-back{display:none}.card-sides{transform:rotateY(180deg)!important}.analysis-text{color:black}.card-caption,.card-position{color:black}}
+
+.private-note{max-width:660px;margin:15px auto 5px}
+.private-note textarea{background:#100e10}
+.vault-form{flex-wrap:wrap}
+.vault-form .field{min-width:min(100%,220px)}
+@media(max-width:760px){.vault-form .field{min-width:100%}.vault-form>button{width:100%}}
