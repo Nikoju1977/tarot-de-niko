@@ -67,7 +67,7 @@ export async function askOracle(reading,{apiKey='',followup='',history=[],signal
   const url=usingPersonalKey?MISTRAL_ENDPOINT:'./api/oracle';
   const payload=usingPersonalKey?
     {model:MODEL,stream:true,temperature:0.75,max_tokens:720,messages}:
-    {cards:reading.cards.map(c=>({name:c.name,position:c.position,theme:c.theme,reversed:c.reversed})),
+    {spread:reading.spread,cards:reading.cards.map(c=>({id:c.id,reversed:!!c.reversed})),
       question:reading.question||'',followup,history};
   // Le mode serveur fonctionne sur un hébergement avec /api. GitHub Pages reste en mode local/BYOK.
   if(!usingPersonalKey&&location.hostname.endsWith('.github.io'))
