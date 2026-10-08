@@ -142,12 +142,13 @@
         <label class="field"><span>Phrase secrète <small>(10 caractères minimum)</small></span>
           <input id="vaultPassword" type="password" minlength="10" autocomplete="off" required></label>
         <button class="primary-button" type="submit" id="vaultOpen">Créer / déverrouiller</button>
+          <button id="importVault" class="outline-button" type="button">Importer une archive</button>
+          <input id="importVaultFile" type="file" accept=".json,application/json" hidden aria-label="Archive chiffrée à importer">
+
       </form>
       <div id="vaultPanel" hidden>
         <div class="vault-toolbar">
           <button id="exportVault" class="outline-button" type="button">Exporter l'archive chiffrée</button>
-          <button id="importVault" class="outline-button" type="button">Importer une archive</button>
-          <input id="importVaultFile" type="file" accept=".json,application/json" hidden aria-label="Archive chiffrée à importer">
           <button id="lockVault" class="text-button" type="button">Verrouiller</button>
         </div>
         <div id="journalEntries" class="journal-entries"></div>
