@@ -13,17 +13,10 @@
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <title>L'Oracle — Tarot Jodorowsky · Mistral AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap" rel="stylesheet">
-    <script>/* Studio Niko · helpers vague C */
-window.safeStorage = window.safeStorage || (function(){var mem=new Map(),ls=null;try{ls=window.localStorage;var t='__niko__';ls.setItem(t,'1');ls.removeItem(t);}catch(e){ls=null;}
-return{getItem:function(k){try{return ls?ls.getItem(k):(mem.has(k)?mem.get(k):null);}catch(e){return mem.has(k)?mem.get(k):null;}},
-setItem:function(k,v){try{if(ls){ls.setItem(k,String(v));return;}}catch(e){}mem.set(k,String(v));},
-removeItem:function(k){try{if(ls)ls.removeItem(k);}catch(e){}mem.delete(k);},
-clear:function(){try{if(ls)ls.clear();}catch(e){}mem.clear();},
-key:function(i){try{if(ls)return ls.key(i);}catch(e){}var a=Array.from(mem.keys());return i<a.length?a[i]:null;},
-get length(){try{if(ls)return ls.length;}catch(e){}return mem.size;}};})();
-window.nikoFetch = window.nikoFetch || function(url,opts){function xhr(){opts=opts||{};return new Promise(function(res,rej){var x=new XMLHttpRequest();x.open((opts.method||'GET'),url,true);if(opts.headers){Object.keys(opts.headers).forEach(function(h){try{x.setRequestHeader(h,opts.headers[h]);}catch(e){}});}x.onload=function(){res({ok:x.status>=200&&x.status<300,status:x.status,statusText:x.statusText,url:url,text:function(){return Promise.resolve(x.responseText);},json:function(){return Promise.resolve(JSON.parse(x.responseText));},headers:{get:function(n){return x.getResponseHeader(n);}}});};x.onerror=function(){rej(new TypeError('Network request failed'));};x.send(opts.body||null);});}
-if(window.fetch){return window.fetch(url,opts).catch(function(){return xhr();});}return xhr();};
-</script>
+    <script>
+        // Purge de la clé API éventuellement enregistrée en clair par une ancienne version.
+        try { window.localStorage.removeItem('oracle_apikey'); } catch (e) {}
+    </script>
 <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <style>
         :root{--gold:#c9a84c;--gold-hi:#e8c870;--gold-lo:#6b5520;--gold-glow:rgba(201,168,76,0.18);--ink:#07060a;--ink2:#100e0c;--border:#2c2618;--text:#d6cdc2;--dim:#8a7a65}
@@ -179,7 +172,7 @@ if(window.fetch){return window.fetch(url,opts).catch(function(){return xhr();});
                 </select>
             </div>
             <div class="field"><label>Clé API Mistral AI</label><input type="password" id="f-apikey" autocomplete="off" placeholder="..."></div>
-            <p class="api-note">Stockée uniquement dans ton navigateur (safeStorage). Sans clé, l'oracle IA est désactivé.</p>
+            <p class="api-note">Clé conservée en mémoire pendant cette consultation uniquement, jamais enregistrée. Elle est envoyée directement à Mistral AI via HTTPS. Sans clé, l’oracle IA est désactivé.</p>
             <button class="btn btn-primary login-btn" id="loginBtn">✦ Ouvrir la Table ✦</button>
         </div>
 
@@ -290,10 +283,9 @@ if(window.fetch){return window.fetch(url,opts).catch(function(){return xhr();});
 
         // ===== STATE =====
         let consultant={}, spreadKey='6', tirage=[], oracleLaunched=false, conversationHistory=[], oracleFullText='';
+        let chatBusy=false, activeRequest=null;
 
-        // ===== GESTION SÉCURISÉE DU LOCALSTORAGE =====
-        function sauverCle(cle) { try { safeStorage.setItem('oracle_apikey', cle); } catch(e) { console.warn("Stockage local désactivé"); } }
-        function recupererCle() { try { return safeStorage.getItem('oracle_apikey') || ''; } catch(e) { return ''; } }
+        // La clé Mistral reste uniquement dans l'état mémoire de la session.
 
         // ===== SPEECH (GÉRÉ POUR IOS SAFARI) =====
         let speechVoices=[];
@@ -334,17 +326,56 @@ if(window.fetch){return window.fetch(url,opts).catch(function(){return xhr();});
         function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
         function escA(s){return escH(s);}
         function sanitizeKey(k){return String(k).replace(/[^\x20-\x7E]/g,'').trim();}
-        function parseSSE(txt){
-            let r='';
-            txt.split('\n').forEach(function(l){
-                if(l.indexOf('data: ')!==0)return;
-                const raw=l.slice(6).trim();
-                if(!raw||raw==='[DONE]')return;
-                try{const d=JSON.parse(raw);const c=d.choices&&d.choices[0]&&d.choices[0].delta&&d.choices[0].delta.content;if(c)r+=c;}catch(e){}
-            });
-            return r;
+        function extraireDeltaSSE(line){
+            if(!/^data:\s*/.test(line))return '';
+            const raw=line.replace(/^data:\s*/,'').trim();
+            if(!raw||raw==='[DONE]')return '';
+            try{
+                const data=JSON.parse(raw);
+                const content=data.choices&&data.choices[0]&&data.choices[0].delta&&data.choices[0].delta.content;
+                return typeof content==='string'?content:'';
+            }catch(e){return '';}
         }
-        
+
+        function parseSSE(txt){
+            return String(txt).split(/\r?\n/).map(extraireDeltaSSE).join('');
+        }
+
+        // Prend en charge les flux SSE découpés entre plusieurs chunks réseau.
+        async function lireReponseMistral(res,onUpdate){
+            if(!res.body||typeof res.body.getReader!=='function'){
+                const raw=await res.text();
+                let answer=parseSSE(raw);
+                if(!answer){
+                    try{
+                        const obj=JSON.parse(raw);
+                        answer=obj.choices&&obj.choices[0]&&obj.choices[0].message&&obj.choices[0].message.content||'';
+                    }catch(e){}
+                }
+                if(typeof answer!=='string'||!answer.trim())throw new Error('Réponse vide de Mistral.');
+                onUpdate(answer);
+                return answer;
+            }
+            const reader=res.body.getReader(),decoder=new TextDecoder();
+            let buffer='',answer='';
+            function consume(line){
+                const delta=extraireDeltaSSE(line);
+                if(delta){answer+=delta;onUpdate(answer);}
+            }
+            while(true){
+                const chunk=await reader.read();
+                if(chunk.done)break;
+                buffer+=decoder.decode(chunk.value,{stream:true});
+                const lines=buffer.split('\n');
+                buffer=lines.pop();
+                lines.forEach(consume);
+            }
+            buffer+=decoder.decode();
+            if(buffer.trim())consume(buffer);
+            if(!answer.trim())throw new Error('Réponse vide de Mistral.');
+            return answer;
+        }
+
         function renderMD(raw){
             let s=String(raw).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
             s=s.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
@@ -389,9 +420,8 @@ if(window.fetch){return window.fetch(url,opts).catch(function(){return xhr();});
             consultant.question=document.getElementById('f-question').value.trim();
             spreadKey=document.getElementById('f-spread').value;
             
-            const k=sanitizeKey(document.getElementById('f-apikey').value);
-            if(k) sauverCle(k);
-            consultant.apiKey=k || sanitizeKey(recupererCle());
+            consultant.apiKey=sanitizeKey(document.getElementById('f-apikey').value);
+            document.getElementById('f-apikey').value='';
             
             try {
                 document.getElementById('loginScreen').style.display='none';
@@ -404,11 +434,23 @@ if(window.fetch){return window.fetch(url,opts).catch(function(){return xhr();});
             }
         }
         
-        function retourLogin(){if(window.speechSynthesis)window.speechSynthesis.cancel();document.getElementById('appScreen').style.display='none';document.getElementById('loginScreen').style.display='block';}
+        function retourLogin(){
+            if(window.speechSynthesis)window.speechSynthesis.cancel();
+            if(activeRequest){activeRequest.abort();activeRequest=null;}
+            consultant.apiKey='';
+            chatBusy=false;
+            document.getElementById('btnSend').disabled=false;
+            document.getElementById('f-apikey').value='';
+            document.getElementById('appScreen').style.display='none';
+            document.getElementById('loginScreen').style.display='block';
+        }
         function nouveauTirage(){if(window.speechSynthesis)window.speechSynthesis.cancel();genererTirage();}
 
         // ===== TIRAGE =====
         function genererTirage(){
+            if(activeRequest){activeRequest.abort();activeRequest=null;}
+            chatBusy=false;
+            document.getElementById('btnSend').disabled=false;
             oracleLaunched=false;conversationHistory=[];oracleFullText='';
             const b=document.getElementById('board');b.innerHTML='';b.className='board spread-'+spreadKey;
             document.getElementById('oraclePanel').classList.remove('on');
@@ -419,7 +461,12 @@ if(window.fetch){return window.fetch(url,opts).catch(function(){return xhr();});
             document.getElementById('btnOracle').style.display='none';
             document.getElementById('btnReveal').style.display='inline-block';
             
-            const shuffled=FULL_DECK.slice().sort(function(){return Math.random()-.5;});
+            // Mélange Fisher–Yates, sans biais dû à Array.sort() et à un comparateur aléatoire.
+            const shuffled=FULL_DECK.slice();
+            for(let i=shuffled.length-1;i>0;i--){
+                const j=Math.floor(Math.random()*(i+1));
+                [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+            }
             tirage=shuffled.slice(0,TIRAGES[spreadKey].pos.length).map(function(c){const o={};for(let k in c)o[k]=c[k];o.isReversed=Math.random()<.3;return o;});
             
             tirage.forEach(function(carte,i){
@@ -465,8 +512,14 @@ if(window.fetch){return window.fetch(url,opts).catch(function(){return xhr();});
             document.getElementById('oracleBody').textContent='';
             oracleFullText='';
             
-            const apiKey=sanitizeKey(consultant.apiKey||recupererCle());
-            if(!apiKey){document.getElementById('oracleLoading').style.display='none';document.getElementById('oracleBody').textContent='⚠ Clé API Mistral manquante.';return;}
+            const apiKey=consultant.apiKey;
+            if(!apiKey){
+                document.getElementById('oracleLoading').style.display='none';
+                document.getElementById('oracleBody').textContent='⚠ Clé API Mistral manquante. Quitte la consultation pour la saisir.';
+                oracleLaunched=false;
+                document.getElementById('btnOracle').style.display='inline-block';
+                return;
+            }
             
             const sp=TIRAGES[spreadKey];
             const desc=tirage.map(function(c,i){
@@ -480,73 +533,70 @@ if(window.fetch){return window.fetch(url,opts).catch(function(){return xhr();});
             const usr='Tirage ('+sp.label+') :\n'+desc+'\n\nConsultant : '+consultant.prenom+dob+'.\nIntention : "'+intent+'".\nInterprète en tutoyant.';
             
             conversationHistory=[{role:'system',content:sys},{role:'user',content:usr}];
+            const controller=new AbortController();
+            activeRequest=controller;
             try{
-                const res=await nikoFetch(MISTRAL_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:MISTRAL_MODEL,stream:true,temperature:0.7,max_tokens:600,messages:conversationHistory})});
+                const res=await fetch(MISTRAL_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:MISTRAL_MODEL,stream:true,temperature:0.7,max_tokens:600,messages:conversationHistory}),signal:controller.signal});
                 if(!res.ok)throw new Error('HTTP '+res.status+' — vérifie ta clé API.');
                 
                 document.getElementById('oracleLoading').style.display='none';
                 const el=document.getElementById('oracleBody');
                 
-                if(!res.body){
-                    oracleFullText=parseSSE(await res.text());
-                }else{
-                    const reader=res.body.getReader(),dec=new TextDecoder();
-                    let buf='';
-                    while(true){
-                        const chunk=await reader.read();if(chunk.done)break;
-                        buf+=dec.decode(chunk.value,{stream:true});
-                        const parts=buf.split('\n');buf=parts.pop();
-                        parts.forEach(function(line){
-                            if(line.indexOf('data: ')!==0)return;const raw=line.slice(6).trim();if(!raw||raw==='[DONE]')return;
-                            try{const d=JSON.parse(raw);const delta=d.choices&&d.choices[0]&&d.choices[0].delta&&d.choices[0].delta.content;
-                                if(delta){oracleFullText+=delta;el.textContent=oracleFullText;scrollBot(document.getElementById('oraclePanel'));}
-                            }catch(e2){}
-                        });
-                    }
-                }
+                oracleFullText=await lireReponseMistral(res,function(text){
+                    el.textContent=text;
+                    scrollBot(document.getElementById('oraclePanel'));
+                });
                 el.innerHTML=renderMD(oracleFullText);
                 conversationHistory.push({role:'assistant',content:oracleFullText});
                 document.getElementById('oracleChatInput').style.display='block';
                 faireParlerOracle(oracleFullText);
             }catch(e){
+                if(controller.signal.aborted)return;
                 document.getElementById('oracleLoading').style.display='none';
+                oracleLaunched=false;
+                document.getElementById('btnOracle').style.display='inline-block';
                 const err=document.createElement('span');err.className='oracle-error';err.textContent='⚠ '+e.message;
                 document.getElementById('oracleBody').appendChild(err);
+            }finally{
+                if(activeRequest===controller)activeRequest=null;
             }
         }
 
         // ===== MISTRAL — CHAT SUIVI (FETCH API) =====
         async function poserQuestionOracle(){
+            if(chatBusy)return;
             const inp=document.getElementById('chatInput'),q=inp.value.trim();if(!q)return;
+            chatBusy=true;
+            document.getElementById('btnSend').disabled=true;
             inp.value='';
             const msgs=document.getElementById('chatMessages');msgs.style.display='block';
             const uN=document.createElement('div');uN.className='msg-user';uN.textContent=consultant.prenom+' : '+q;msgs.appendChild(uN);
             const aN=document.createElement('div');aN.className='msg-oracle';msgs.appendChild(aN);
             scrollBot(msgs);conversationHistory.push({role:'user',content:q});let rep='';
-            
+            const controller=new AbortController();
+            activeRequest=controller;
             try{
-                const apiKey=sanitizeKey(consultant.apiKey||recupererCle());
-                const res=await nikoFetch(MISTRAL_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:MISTRAL_MODEL,stream:true,temperature:0.7,max_tokens:400,messages:conversationHistory})});
+                const apiKey=consultant.apiKey;
+                if(!apiKey)throw new Error('Clé API Mistral manquante.');
+                const res=await fetch(MISTRAL_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:MISTRAL_MODEL,stream:true,temperature:0.7,max_tokens:400,messages:conversationHistory}),signal:controller.signal});
                 if(!res.ok)throw new Error('Erreur '+res.status);
-                if(!res.body){
-                    rep=parseSSE(await res.text());
-                }else{
-                    const reader=res.body.getReader(),dec=new TextDecoder();
-                    let buf='';
-                    while(true){
-                        const chunk=await reader.read();if(chunk.done)break;
-                        buf+=dec.decode(chunk.value,{stream:true});
-                        const parts=buf.split('\n');buf=parts.pop();
-                        parts.forEach(function(line){
-                            if(line.indexOf('data: ')!==0)return;const raw=line.slice(6).trim();if(!raw||raw==='[DONE]')return;
-                            try{const d=JSON.parse(raw);const delta=d.choices&&d.choices[0]&&d.choices[0].delta&&d.choices[0].delta.content;
-                                if(delta){rep+=delta;aN.textContent=rep;scrollBot(msgs);}
-                            }catch(e2){}
-                        });
-                    }
-                }
+                rep=await lireReponseMistral(res,function(text){
+                    aN.textContent=text;
+                    scrollBot(msgs);
+                });
                 aN.innerHTML=renderMD(rep);conversationHistory.push({role:'assistant',content:rep});faireParlerOracle(rep);
-            }catch(e){aN.className='oracle-error';aN.textContent='⚠ '+e.message;}
+            }catch(e){
+                if(controller.signal.aborted)return;
+                conversationHistory.pop();
+                aN.className='oracle-error';
+                aN.textContent='⚠ '+e.message;
+            }finally{
+                if(activeRequest===controller){
+                    activeRequest=null;
+                    chatBusy=false;
+                    document.getElementById('btnSend').disabled=false;
+                }
+            }
         }
 
         // ===== MICRO =====
@@ -608,7 +658,7 @@ if(window.fetch){return window.fetch(url,opts).catch(function(){return xhr();});
         // Service Worker (PWA)
         if('serviceWorker' in navigator){
             window.addEventListener('load', function(){
-                navigator.serviceWorker.register('/sw.js').catch(function(){});
+                navigator.serviceWorker.register('./sw.js').catch(function(){});
             });
         }
     </script>
