@@ -2,10 +2,32 @@ import {SPREADS,VERSION} from './tarot-data.js';
 import {drawSpread,localInterpretation,analyzeSpread} from './tarot-engine.js';
 import {cardArtwork} from './card-art.js';
 import {askOracle} from './oracle.js';
+import {loadMistralKey,saveMistralKey,forgetMistralKey} from './mistral-key.js';
 import {vaultExists,isUnlocked,unlockVault,lockVault,listReadings,addReading,removeReading,exportEncryptedVault,importEncryptedVault} from './vault.js';
 
 const $=(id)=>document.getElementById(id);
-const state={reading:null,key:'',revealed:new Set(),history:[],aiText:'',busy:false,controller:null,audio:null,ambient:false,pendingSave:false};
+const state={reading:null,key:'',savedKey:false,revealed:new Set(),history:[],aiText:'',busy:false,controller:null,audio:null,ambient:false,pendingSave:false};
+let keyRevision=0;
+let keyOperation=false;
+function keyStatus(message){
+  setText('apiKeyStatus',message);
+  $('forgetApiKey').hidden=!state.savedKey;
+}
+async function restoreSavedKey(){
+  const revision=keyRevision;
+  try{
+    const saved=await loadMistralKey();
+    if(keyRevision!==revision)return;
+    state.savedKey=Boolean(saved);
+    if(saved)state.key=saved;
+    keyStatus(saved?
+      'Clé Mistral mémorisée sur cet appareil et prête pour tous tes tirages.':
+      'Aucune clé enregistrée : tu peux utiliser le tirage sans IA, ou ajouter ta clé ci-dessus.');
+  }catch(error){
+    if(keyRevision!==revision)return;
+    keyStatus(error.message);
+  }
+}
 let statusTimer=0;
 const listeners=(id,event,fn)=>$(id).addEventListener(event,fn);
 const setText=(id,text)=>{$(id).textContent=text;};
@@ -78,7 +100,12 @@ function newReading(){
     question:$('intention').value.trim().slice(0,500),
     cards:drawSpread(spread,{reverse:$('reverseCards').checked})
   };
-  state.key=$('apiKey').value.trim();
+  const enteredKey=$('apiKey').value.trim();
+  if(enteredKey){
+    keyRevision++;
+    state.key=enteredKey;
+    keyStatus('Clé active pendant cette visite. Clique sur « Mémoriser » pour la retrouver plus tard.');
+  }
   $('apiKey').value='';
   $('readingNote').value='';
   state.aiText='';state.history=[];state.revealed=new Set();
@@ -117,6 +144,8 @@ async function oracleRequest(followup=''){
   const separator=followup?'\n\n✧ '+followup+'\n\n':'';
   panel.textContent=previous+separator+'L’Oracle compose sa lecture…';
   try{
+    await keyRestorePromise;
+    if(controller.signal.aborted)return;
     const answer=await askOracle(state.reading,{
       apiKey:state.key,followup,history:state.history,signal:controller.signal,
       onUpdate:(text)=>{
@@ -250,6 +279,57 @@ listeners('saveReading','click',saveCurrentReading);
 listeners('speakReading','click',speak);
 listeners('printReading','click',()=>window.print());
 listeners('ambientToggle','click',toggleAmbient);
+listeners('openApiSettings','click',()=>{
+  navigate('home');
+  $('apiSettings').open=true;
+  $('apiSettings').scrollIntoView({behavior:'smooth',block:'center'});
+  $('apiKey').focus();
+});
+listeners('saveApiKey','click',async()=>{
+  if(keyOperation)return;
+  const secret=$('apiKey').value.trim()||state.key;
+  if(!secret){status('Colle ta clé Mistral dans le champ avant de l’enregistrer.');$('apiKey').focus();return;}
+  keyRevision++;
+  state.key=secret;
+  $('apiKey').value='';
+  keyOperation=true;
+  $('saveApiKey').disabled=true;
+  $('forgetApiKey').disabled=true;
+  try{
+    await saveMistralKey(secret);
+    state.savedKey=true;
+    keyStatus('Clé enregistrée et chiffrée sur cet appareil. Elle sera automatiquement réutilisée, même après fermeture du navigateur.');
+    status('Clé Mistral mémorisée : tu n’auras plus à la ressaisir sur cet appareil.');
+  }catch(error){
+    keyStatus('Clé active pour cette visite seulement. '+error.message);
+    status('Enregistrement impossible : '+error.message);
+  }finally{
+    keyOperation=false;
+    $('saveApiKey').disabled=false;
+    $('forgetApiKey').disabled=false;
+  }
+});
+listeners('forgetApiKey','click',async()=>{
+  if(keyOperation)return;
+  keyRevision++;
+  keyOperation=true;
+  $('saveApiKey').disabled=true;
+  $('forgetApiKey').disabled=true;
+  try{
+    await forgetMistralKey();
+    state.key='';
+    state.savedKey=false;
+    $('apiKey').value='';
+    keyStatus('Clé effacée de cet appareil. Tu peux en ajouter une nouvelle.');
+    status('Clé Mistral oubliée.');
+  }catch(error){
+    status('Impossible d’effacer la clé : '+error.message);
+  }finally{
+    keyOperation=false;
+    $('saveApiKey').disabled=false;
+    $('forgetApiKey').disabled=false;
+  }
+});
 listeners('microphone','click',()=>{
   const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!Speech){status('Reconnaissance vocale non disponible dans ce navigateur.');return;}
@@ -293,10 +373,12 @@ listeners('exportVault','click',()=>{
   try{download('tarot-de-niko-grimoire-chiffre.json',exportEncryptedVault());}
   catch(e){status(e.message);}
 });
-// Garde la consultation privée lors du rechargement, et ne persiste jamais la clé API.
+// La clé de session est effacée à la fermeture ; seul le choix explicite
+// « Mémoriser » permet un stockage chiffré dans IndexedDB sur cet appareil.
 window.addEventListener('pagehide',()=>{cleanAsync();state.key='';if(state.ambient)toggleAmbient();lockVault();});
 if('serviceWorker'in navigator&&location.protocol.startsWith('http')){
   window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 }
 if(vaultExists())$('vaultOpen').textContent='Déverrouiller le grimoire';
+const keyRestorePromise=restoreSavedKey();
 document.title='L’Oracle — Tarot de Niko · v'+VERSION;
