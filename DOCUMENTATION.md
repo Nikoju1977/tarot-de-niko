@@ -28,7 +28,7 @@ Cette protection aide contre la lecture triviale du disque, sans remplacer la s�
 
 ## Interprétation Mistral
 
-Mode direct : l'utilisateur saisit une clé temporaire et le navigateur appelle l'API Mistral par HTTPS. Cela peut dépendre des restrictions CORS du fournisseur.
+Mode direct : l'utilisateur saisit sa clé personnelle et le navigateur appelle l'API Mistral par HTTPS. La clé est conservée pendant la visite et peut, sur choix explicite **Mémoriser sur cet appareil**, être chiffrée en AES-GCM dans IndexedDB pour les visites suivantes (`js/mistral-key.js`). La clé de chiffrement locale est non exportable, mais la même origine web peut l'utiliser pour déchiffrer le secret ; ce stockage ne protège ni contre une extension malveillante ni contre un navigateur compromis. **Effacer ma clé** supprime la copie locale. Cela peut dépendre des restrictions CORS du fournisseur.
 
 Mode serveur : héberger le dépôt sur Vercel et définir les variables `MISTRAL_API_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`. `api/oracle.js` applique un contrôle d'origine, reconstruit les cartes depuis le jeu autorisé, vérifie la taille des requêtes, applique un quota persistant Redis et diffuse les événements SSE. Il échoue en mode fermé (503) si configuration absente ou quota indisponible.
 
